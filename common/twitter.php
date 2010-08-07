@@ -1521,7 +1521,7 @@ function theme_timeline($feed)
 		//Doesn't work. since_id returns the most recent tweets up to since_id, not since. Grrr
 		//$links[] = "<a href='{$_GET['q']}?since_id=$since_id'>Newer</a>";
 
-		$links[] = "<a href='{$_GET['q']}?max_id=$max_id'>Older</a>";
+		$links[] = "<a href='{$_GET['q']}?max_id=$max_id' accesskey='9'>Older</a> 9";
 		$content .= '<p>'.implode(' | ', $links).'</p>';
 	}
 
