@@ -1221,7 +1221,7 @@ function theme_user_header($user) {
 	$out .= "
 			<br />Bio: {$user->description}
 			<br />Link: {$link}
-			<br />Location: {$user->location}
+			<br />Location: <a href=\"http://maps.google.com/m?q={$user->location}\" target=\"_blank\">{$user->location}</a>
 			<br />Joined: {$date_joined} (~$tweets_per_day tweets per day)
 			</small>
 			<br />
