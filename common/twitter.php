@@ -1204,6 +1204,8 @@ function theme_user_header($user) {
 	$name = theme('full_name', $user);
 	$full_avatar = str_replace('_normal.', '.', $user->profile_image_url);
 	$link = theme('external_link', $user->url);
+	//Some locations have a prefix which should be removed (UbertTwitter and iPhone)
+	$cleanLocation = str_replace(array("iPhone: ","ÜT: "),"",$user->location);
 	$raw_date_joined = strtotime($user->created_at);
 	$date_joined = date('jS M Y', $raw_date_joined);
 	$tweets_per_day = twitter_tweets_per_day($user, 1);
@@ -1218,10 +1220,11 @@ function theme_user_header($user) {
 	if ($user->protected == true) {
 		$out .= '<br /><strong>Private/Protected Tweets</strong>';
 	}
+
 	$out .= "
 			<br />Bio: {$user->description}
 			<br />Link: {$link}
-			<br />Location: <a href=\"http://maps.google.com/m?q={$user->location}\" target=\"_blank\">{$user->location}</a>
+			<br />Location: <a href=\"http://maps.google.com/m?q={$cleanLocation}\" target=\"_blank\">{$user->location}</a>
 			<br />Joined: {$date_joined} (~$tweets_per_day tweets per day)
 			</small>
 			<br />
