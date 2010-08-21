@@ -1246,7 +1246,7 @@ function theme_user_header($user) {
 				| <a href='favourites/{$user->screen_name}'>{$user->favourites_count} favourites</a>";
 			}
 
-			$out.= "	| <a href='lists/{$user->screen_name}'>Lists</a>
+			$out.= "	| <a href='lists/{$user->screen_name}'>{$user->listed_count} Lists</a>
 				| <a href='directs/create/{$user->screen_name}'>Direct Message</a>";
 			//NB we can tell if the user can be sent a DM $following->relationship->target->following;
 			//Would removing this link confuse users?
@@ -1491,6 +1491,10 @@ function theme_timeline($feed)
 		if ($status->in_reply_to_status_id)
 		{
 			$source .= " <a href='status/{$status->in_reply_to_status_id}'>in reply to {$status->in_reply_to_screen_name}</a>";
+		}
+		if ($status->retweet_count)
+		{
+			$source .= " Retweeted {$status->retweet_count} times";
 		}
 		$html = "<b><a href='user/{$status->from->screen_name}'>{$status->from->screen_name}</a></b> $actions $link<br />{$text} <small>$source</small>";
 		if ($status->retweeted_by)
