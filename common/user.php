@@ -111,8 +111,14 @@ function user_is_authenticated() {
 			$GLOBALS['user'] = array();
 		}
 	}
+	
+	// Auto-logout any users that aren't correctly using OAuth
+	if (user_current_username() && user_type() !== 'oauth') {
+		user_logout();
+		twitter_refresh('logout');
+	}
 
-	if (!$GLOBALS['user']['username']) {
+	if (!user_current_username()) {
 		if ($_POST['username'] && $_POST['password']) {
 			$GLOBALS['user']['username'] = trim($_POST['username']);
 			$GLOBALS['user']['password'] = $_POST['password'];
@@ -178,13 +184,8 @@ function _user_decrypt_cookie($crypt_text) {
 
 function theme_login() {
 	return '
-<p><a href="oauth"><img src="images/twitter_button_2_lo.gif" alt="Sign in with Twitter/OAuth" width="165" height="28" /></a> (mobile friendly).</p>
-<p>Or enter your Twitter username and password below:</p>
-<form method="post" action="'.$_GET['q'].'">
-<p>Username <input name="username" size="15" />
-<br />Password <input name="password" type="password" size="15" />
-<br /><label><input type="checkbox" value="yes" name="stay-logged-in" /> Stay logged in? </label>
-<br /><input type="submit" value="Sign In" /></p>
+<p><a href="oauth"><img src="images/twitter_button_2_lo.gif" alt="Sign in with Twitter/OAuth" width="165" height="28" /></a></p>
+<p>(The standard login form has been removed because Twitter no longer allow accesss that way)</p>
 </form>
 ';
 }
