@@ -1560,6 +1560,7 @@ function theme_followers($feed, $hide_pagination = false) {
 		   "Info: {$user->statuses_count} tweets, {$user->friends_count} friends, {$user->followers_count} followers, ~{$tweets_per_day} tweets per day</small>"
 		);
 	}
+
 	$content = theme('table', array(), $rows, array('class' => 'followers'));
 	if (!$hide_pagination)
 	$content .= theme('list_pagination', $feed);

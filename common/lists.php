@@ -159,7 +159,7 @@ function lists_list_members_page($user, $list) {
 function lists_list_subscribers_page($user, $list) {
 	// Show subscribers of a list
 	$p = twitter_lists_list_subscribers($user, $list);
-	$content = theme('followers', $p->users->user, 1);
+	$content = theme('followers', $p, 1);
 	$content .= theme('list_pagination', $p);
 	theme('page', "Subscribers of {$user}/{$list}", $content);
 }
