@@ -366,6 +366,7 @@ function twitter_process($url, $post_data = false)
 	//from  http://github.com/abraham/twitteroauth/blob/master/twitteroauth/twitteroauth.php
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
 	curl_setopt($ch, CURLOPT_HTTPHEADER, array('Expect:'));
+	curl_setopt($ch, CURLOPT_TIMEOUT, 10);
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 	curl_setopt($ch, CURLOPT_HEADER, FALSE);
 
