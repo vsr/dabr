@@ -185,8 +185,8 @@ function _user_decrypt_cookie($crypt_text) {
 function theme_login() {
 	return '
 <p><a href="oauth"><img src="images/twitter_button_2_lo.gif" alt="Sign in with Twitter/OAuth" width="165" height="28" /></a></p>
+<p><a href="oauth">Sign in with Twitter</a></p>
 <p>(The standard login form has been removed because Twitter no longer allow accesss that way)</p>
-</form>
 ';
 }
 
