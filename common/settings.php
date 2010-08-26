@@ -54,6 +54,15 @@ function settings_page($args) {
 		$settings['gwt'] = $_POST['gwt'];
 		$settings['colours'] = $_POST['colours'];
 		$settings['reverse'] = $_POST['reverse'];
+		
+		// Save a user's oauth details to a MySQL table
+		if (MYSQL_USERS == 'ON' && $newpass = $_POST['newpassword']) {
+			user_is_authenticated();
+			list($key, $secret) = explode('|', $GLOBALS['user']['password']);
+			$sql = sprintf("REPLACE INTO user (username, oauth_key, oauth_secret, password) VALUES ('%s', '%s', '%s', MD5('%s'))",  mysql_escape_string(user_current_username()), mysql_escape_string($key), mysql_escape_string($secret), mysql_escape_string($newpass));
+			mysql_query($sql);
+		}
+		
 		setcookie_year('settings', base64_encode(serialize($settings)));
 		twitter_refresh('');
 	}
@@ -86,6 +95,12 @@ function settings_page($args) {
 	$content .= theme('options', $gwt, setting_fetch('gwt', $GLOBALS['current_theme'] == 'text' ? 'on' : 'off'));
 	$content .= '</select><small><br />Google Web Transcoder (GWT) converts third-party sites into small, speedy pages suitable for older phones and people with less bandwidth.</small></p>';
 	$content .= '<p><label><input type="checkbox" name="reverse" value="yes" '. (setting_fetch('reverse') == 'yes' ? ' checked="checked" ' : '') .' /> Attempt to reverse the conversation thread view.</label></p>';
+	
+	// Allow users to choose a Dabr password if accounts are enabled
+	if (MYSQL_USERS == 'ON' && user_is_authenticated()) {
+		$content .= '<fieldset><legend>Dabr account</legend><small>If you want to sign in to Dabr without going via Twitter.com in the future, create a password and we\'ll remember you.</small></p><p>Change Dabr password<br /><input type="password" name="newpassword" /><br /><small>Leave blank if you don\'t want to change it</small></fieldset>';
+	}
+	
 	$content .= '<p><input type="submit" value="Save" /></p></form>';
 
 	$content .= '<hr /><p>Visit <a href="reset">Reset</a> if things go horribly wrong - it will log you out and clear all settings.</p>';

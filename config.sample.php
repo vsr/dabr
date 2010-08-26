@@ -36,6 +36,24 @@ if ($directory = trim(dirname($_SERVER['SCRIPT_NAME']), '/\,')) {
 define('BASE_URL', $base_url.'/');
 
 
+
+// MySQL storage of OAuth login details for users
+define('MYSQL_USERS', 'OFF');
+// mysql_connect('localhost', 'username', 'password');
+// mysql_select_db('dabr');
+
+/* The following table is needed to store user login details if you enable MYSQL_USERS:
+
+CREATE TABLE IF NOT EXISTS `user` (
+  `username` varchar(64) NOT NULL,
+  `oauth_key` varchar(128) NOT NULL,
+  `oauth_secret` varchar(128) NOT NULL,
+  `password` varchar(32) NOT NULL,
+  PRIMARY KEY (`username`)
+)
+
+*/
+
 // Google Analytics Mobile tracking code
 // You need to download ga.php from the Google Analytics website for this to work
 // Copyright 2009 Google Inc. All Rights Reserved.

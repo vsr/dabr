@@ -5,6 +5,10 @@ menu_register(array(
 		'callback' => 'user_oauth',
 		'hidden' => 'true',
 	),
+	'login' => array(
+		'callback' => 'user_login',
+		'hidden' => 'true',
+	),
 ));
 
 function user_oauth() {
@@ -44,7 +48,7 @@ function user_oauth() {
 		$_SESSION['oauth_request_token_secret'] = $token['oauth_token_secret'];
 
 		// redirect user to authorisation URL
-		$authorise_url = 'https://api.twitter.com/oauth/authorize?oauth_token='.$token['oauth_token'];
+		$authorise_url = 'http://api.twitter.com/oauth/authorize?oauth_token='.$token['oauth_token'];
 		header("Location: $authorise_url");
 	}
 }
@@ -122,7 +126,16 @@ function user_is_authenticated() {
 		if ($_POST['username'] && $_POST['password']) {
 			$GLOBALS['user']['username'] = trim($_POST['username']);
 			$GLOBALS['user']['password'] = $_POST['password'];
-			$GLOBALS['user']['type'] = 'normal';
+			$GLOBALS['user']['type'] = 'oauth';
+			
+			$sql = sprintf("SELECT * FROM user WHERE username='%s' AND password=MD5('%s') LIMIT 1", mysql_escape_string($GLOBALS['user']['username']), mysql_escape_string($GLOBALS['user']['password']));
+			$rs = mysql_query($sql);
+			if ($rs && $user = mysql_fetch_object($rs)) {
+				$GLOBALS['user']['password'] = $user->oauth_key . '|' . $user->oauth_secret;
+			} else {
+				theme('error', 'Invalid username or password.');
+			}
+			
 			_user_save_cookie($_POST['stay-logged-in'] == 'yes');
 			header('Location: '. BASE_URL);
 			exit();
@@ -182,12 +195,36 @@ function _user_decrypt_cookie($crypt_text) {
 	list($GLOBALS['user']['username'], $GLOBALS['user']['password'], $GLOBALS['user']['type']) = explode(':', $plain_text);
 }
 
+function user_login() {
+	return theme('page', 'Login','
+<form method="post" action="'.$_GET['q'].'">
+<p>Username <input name="username" size="15" />
+<br />Password <input name="password" type="password" size="15" />
+<br /><label><input type="checkbox" checked="checked" value="yes" name="stay-logged-in" /> Stay logged in? </label>
+<br /><input type="submit" value="Sign In" /></p>
+</form>
+
+<p><b>Registration steps:</b></p>
+
+<ol>
+	<li><a href="oauth">Sign in via Twitter.com</a> from any computer</li>
+	<li>Visit the Dabr settings page to choose a password</li>
+	<li>Done! You can now benefit from accessing Twitter through Dabr from anywhere (even from computers that block Twitter.com)</li>
+</ol>
+');
+}
+
 function theme_login() {
-	return '
-<p><a href="oauth"><img src="images/twitter_button_2_lo.gif" alt="Sign in with Twitter/OAuth" width="165" height="28" /></a></p>
-<p><a href="oauth">Sign in with Twitter</a></p>
-<p>(The standard login form has been removed because Twitter no longer allow accesss that way)</p>
-';
+	$content = '<div style="margin:1em; font-size: 1.2em">
+<p><a href="oauth"><img src="images/twitter_button_2_lo.gif" alt="Sign in with Twitter/OAuth" width="165" height="28" /></a><br /><a href="oauth">Sign in via Twitter.com</a></p>
+<p>Twitter no longer allow you to log in directly with a username and password so we can\'t show the standard login form. There\'s some more information on the <a href="http://blog.dabr.co.uk/">Dabr blog</a>.</p>';
+	
+	if (MYSQL_USERS == 'ON') $content .= '<p>No access to Twitter.com? <a href="login">Sign in with your Dabr account</a></p>';
+	$content .= '</div>';
+	if (function_exists('theme_advert')) {
+		$content .= theme('advert');
+	}
+	return $content;
 }
 
 function theme_logged_out() {
