@@ -539,13 +539,11 @@ function twitter_photo_replace($text) {
     '#moby.to/\??([\w\d]+)#i' => 'http://moby.to/%s:square',
     '#mobypicture.com/\?([\w\d]+)#i' => 'http://mobypicture.com/?%s:square',
     '#twic.li/([\w\d]{2,7})#' => 'http://twic.li/api/photo.jpg?id=%s&size=small',
-    '#tweetphoto.com/(\d+)#' => 'http://TweetPhotoAPI.com/api/TPAPI.svc/json/imagefromurl?size=thumbnail&url=http://tweetphoto.com/%s',
+    	'#tweetphoto\.com\/(\d+)#' => 'http://api.plixi.com/api/tpapi.svc/imagefromurl?url=http://tweetphoto.com/%s',
+	'#plixi\.com\/p\/(\d+)#' => 'http://api.plixi.com/api/tpapi.svc/imagefromurl?url=http://plixi.com/p/%s',
+	'#pic\.gd\/([\w\d]+)#' => 'http://api.plixi.com/api/tpapi.svc/imagefromurl?url=http://www.pic.gd/%s',
 	'#phz.in/([\d\w]+)#' => 'http://i.tinysrc.mobi/x50/http://api.phreadz.com/thumb/%s?t=code',
-
-	//From the issues list http://code.google.com/p/dabr/issues/detail?id=106
 	'#twitvid.com/([\w]+)#i' => 'http://i.tinysrc.mobi/x50/http://images.twitvid.com/%s.jpg',
-    '#pic.gd/([\w]+)#i' =>
-	'http://TweetPhotoAPI.com/api/TPAPI.svc/imagefromurl?size=thumbnail&url=http://www.pic.gd/%s',
 	'#imgur.com/([\w]{5})[\s\.ls][\.\w]*#i' => 'http://imgur.com/%ss.png',
 	'#imgur.com/gallery/([\w]+)#i' => 'http://imgur.com/%ss.png',
  	'#brizzly.com/pic/([\w]+)#i' => 'http://pics.brizzly.com/thumb_sm_%s.jpg',
