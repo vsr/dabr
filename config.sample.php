@@ -14,6 +14,10 @@ define('OAUTH_CONSUMER_SECRET', '');
 define('BITLY_LOGIN', '');
 define('BITLY_API_KEY', '');
 
+// slideshare.com API key and Shared secret for getting Slidesha.re thumbnails. Available from http://www.slideshare.net/developers/applyforapi
+define('SLIDESHARE_API_KEY', '');
+define('SLIDESHARE_SHARED_SECRET', '');
+
 // Optional API keys for retrieving thumbnails
 define('FLICKR_API_KEY', '');
 

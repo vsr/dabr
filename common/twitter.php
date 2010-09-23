@@ -618,6 +618,19 @@ function twitter_photo_replace($text) {
 		}
 	}
 
+	//SlideShare
+	if ((SLIDESHARE_API_KEY != '') && (BITLY_API_KEY != ''))
+	{
+		if(preg_match_all('#slidesha.re/([\w\d]+)#', $tmp, $matches, PREG_PATTERN_ORDER) > 0)
+		{
+			foreach ($matches[1] as $key => $match)
+			{
+				$thumb = get_thumbnail("slidesha.re", $match);
+				$images[] = theme('external_link', "http://slidesha.re/$match)", "<img src='$thumb' />");
+			}
+		}
+	}
+
 	if (empty($images)) return $text;
 	return implode('<br />', $images).'<br />'.$text;
 }
@@ -683,6 +696,33 @@ function get_thumbnail($service, $id)
 			return "http://i.tinysrc.mobi/x50/" . $thumb;
 		}
 		return null;
+	}
+	else if ($service == "slidesha.re")
+	{
+		$bitlyURL = "http://api.bit.ly/v3/expand?shortUrl=http%3A%2F%2Fslidesha.re%2F" 
+				. $id 
+				. "&login=" 
+				. BITLY_LOGIN 
+				. "&apiKey="
+				. BITLY_API_KEY
+				. "&format=txt";
+
+		$slideshareURL = twitter_fetch($bitlyURL);
+
+		$ts = time();
+		$hash = sha1(SLIDESHARE_SHARED_SECRET . $ts);
+
+		$slideshareXMLURL = "http://www.slideshare.net/api/2/get_slideshow?"
+			. "api_key=" . SLIDESHARE_API_KEY
+			. "&ts=" . $ts
+			. "&hash=" . $hash
+			. "&slideshow_url=" . $slideshareURL;
+		$slideshareXML = twitter_fetch($slideshareXMLURL);
+		$slideshareData = simplexml_load_string($slideshareXML);
+		
+		$thumb = $slideshareData->ThumbnailURL;
+
+		return $thumb;
 	}
 }
 
