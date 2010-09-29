@@ -26,7 +26,7 @@ function geoStatus(msg) {
 	document.getElementById("lblGeo").innerHTML = msg;
 }
 function geoSuccess(position) {
-	geoStatus("Tweet my location");
+	geoStatus("Tweet my <a href=\'http://maps.google.co.uk/m?q=" + position.coords.latitude + "," + position.coords.longitude + "\' target=\'blank\'>location</a>");
 	chkbox.value = position.coords.latitude + "," + position.coords.longitude;
 }
   </script>
