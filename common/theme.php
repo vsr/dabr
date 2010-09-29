@@ -63,7 +63,7 @@ function theme_info($info) {
 }
 
 function theme_table($headers, $rows, $attributes = NULL) {
-	$out = '<table'.theme_attributes($attributes).'>';
+	$out = '<div'.theme_attributes($attributes).'>';
 	if (count($headers) > 0) {
 		$out .= '<thead><tr>';
 		foreach ($headers as $cell) {
@@ -72,9 +72,9 @@ function theme_table($headers, $rows, $attributes = NULL) {
 		$out .= '</tr></thead>';
 	}
 	if (count($rows) > 0) {
-		$out .= '<tbody>'.theme('table_rows', $rows).'</tbody>';
+		$out .= theme('table_rows', $rows);
 	}
-	$out .= '</table>';
+	$out .= '</div>';
 	return $out;
 }
 
@@ -90,11 +90,11 @@ function theme_table_rows($rows) {
 			$attributes = FALSE;
 		}
 		$attributes['class'] .= ($attributes['class'] ? ' ' : '') . ($i++ %2 ? 'even' : 'odd');
-		$out .= '<tr'.theme_attributes($attributes).'>';
+		$out .= '<div'.theme_attributes($attributes).'>';
 		foreach ($cells as $cell) {
 			$out .= theme_table_cell($cell);
 		}
-		$out .= "</tr>\n";
+		$out .= "</div>\n";
 	}
 	return $out;
 }
@@ -117,7 +117,7 @@ function theme_table_cell($contents, $header = FALSE) {
 		$value = $contents;
 		$attributes = false;
 	}
-	return "<$celltype".theme_attributes($attributes).">$value</$celltype>";
+	return "<span".theme_attributes($attributes).">$value</span>";
 }
 
 
@@ -174,14 +174,26 @@ function theme_colours() {
 function theme_css() {
 	$c = theme('colours');
 	return "<style type='text/css'>
-  a{color:#{$c->links}}table{border-collapse:collapse}
-  form{margin:.3em;}td{vertical-align:top;padding:0.3em}img{border:0}small,small a{color:#{$c->small}}
+  a{color:#{$c->links}}
+  table{border-collapse:collapse}
+  form{margin:.3em;}
+  td{vertical-align:top;padding:0.3em}
+  img{border:0}
+  small,small a{color:#{$c->small}}
   body{background:#{$c->bodybg};
-  color:#{$c->bodyt};margin:0;font:90% sans-serif}tr.odd td{background:#{$c->odd}}tr.even td{background:#{$c->even}}
-  tr.reply td{background:#{$c->replyodd}
-  }tr.reply.even td{background: #{$c->replyeven}}
+  color:#{$c->bodyt};margin:0;font:90% sans-serif}
+  .odd{background:#{$c->odd}}
+  .even{background:#{$c->even}}
+  .reply{background:#{$c->replyodd}}
+  .reply.even{background: #{$c->replyeven}}
   .menu{color:#{$c->menut};background:#{$c->menubg};padding: 2px}
   .menu a{color:#{$c->menua};text-decoration: none}
+  .tweet,.features{padding:5px}
+  .date{padding:5px;font-size:0.75em;font-weight:bold;color:#{$c->small}}
+  .about{font-size:0.75em;color:#{$c->small}}
+  .avatar{display:block; height:26px; width:26px; left:0.3em; margin:0; overflow:hidden; position:absolute;}
+  .status{display:block;}
+  .shift{margin-left:30px;min-height:24px;}
 </style>";
 }
 

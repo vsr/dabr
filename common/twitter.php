@@ -539,7 +539,7 @@ function twitter_photo_replace($text) {
     '#moby.to/\??([\w\d]+)#i' => 'http://moby.to/%s:square',
     '#mobypicture.com/\?([\w\d]+)#i' => 'http://mobypicture.com/?%s:square',
     '#twic.li/([\w\d]{2,7})#' => 'http://twic.li/api/photo.jpg?id=%s&size=small',
-    	'#tweetphoto\.com\/(\d+)#' => 'http://api.plixi.com/api/tpapi.svc/imagefromurl?url=http://tweetphoto.com/%s',
+    '#tweetphoto\.com\/(\d+)#' => 'http://api.plixi.com/api/tpapi.svc/imagefromurl?url=http://tweetphoto.com/%s',
 	'#plixi\.com\/p\/(\d+)#' => 'http://api.plixi.com/api/tpapi.svc/imagefromurl?url=http://plixi.com/p/%s',
 	'#pic\.gd\/([\w\d]+)#' => 'http://api.plixi.com/api/tpapi.svc/imagefromurl?url=http://www.pic.gd/%s',
 	'#phz.in/([\d\w]+)#' => 'http://i.tinysrc.mobi/x50/http://api.phreadz.com/thumb/%s?t=code',
@@ -1186,12 +1186,15 @@ function theme_status_form($text = '', $in_reply_to_id = NULL) {
 function theme_status($status) {
 	$time_since = theme('status_time_link', $status);
 	$parsed = twitter_parse_tags($status->text);
-	$avatar = theme('avatar', $status->user->profile_image_url, 1);
+	$avatar = theme('avatar', $status->user->profile_image_url);
 
 	$out = theme('status_form', "@{$status->user->screen_name} ");
-	$out .= "<p>$parsed</p>
-<table align='center'><tr><td>$avatar</td><td><a href='user/{$status->user->screen_name}'>{$status->user->screen_name}</a>
-<br />$time_since</td></tr></table>";
+	$out .= "<div class='timeline'>\n";
+	$out .= " <div class='tweet odd'>\n";
+	$out .= "  <span class='avatar'>$avatar</span>\n";
+	$out .= "  <span class='status shift'><b><a href='user/{$status->user->screen_name}'>{$status->user->screen_name}</a></b> $time_since<br />$parsed</span>\n";
+	$out .= " </div>\n";
+	$out .= "</div>\n";
 	if (user_is_current_user($status->user->screen_name)) {
 		$out .= "<form action='delete/{$status->id}' method='post'><input type='submit' value='Delete without confirmation' /></form>";
 	}
@@ -1249,11 +1252,10 @@ function theme_user_header($user) {
 	$raw_date_joined = strtotime($user->created_at);
 	$date_joined = date('jS M Y', $raw_date_joined);
 	$tweets_per_day = twitter_tweets_per_day($user, 1);
-	$out = "<table>
-  				<tr>
-  					<td>".theme('external_link', $full_avatar, theme('avatar', $user->profile_image_url, 1))."</td>
-					<td><b>{$name}</b>
-						<small>";
+	$out = "<div class='profile'>
+<span class='avatar'>".theme('external_link', $full_avatar, theme('avatar', $user->profile_image_url))."</span>
+<span class='status shift'><b>{$name}</b>
+<span class='about'>";
 	if ($user->verified == true) {
 		$out .= '<br /><strong>Verified Account</strong>';
 	}
@@ -1266,8 +1268,8 @@ function theme_user_header($user) {
 			<br />Link: {$link}
 			<br />Location: <a href=\"http://maps.google.com/m?q={$cleanLocation}\" target=\"_blank\">{$user->location}</a>
 			<br />Joined: {$date_joined} (~$tweets_per_day tweets per day)
-			</small>
-			<br />
+			</span></span>
+			<div class='features'>
 			{$user->statuses_count} tweets | ";
 
 			//If the authenticated user is not following the protected used, the API will return a 401 error when trying to view friends, followers and favourites
@@ -1321,7 +1323,7 @@ function theme_user_header($user) {
 
 			$out.= " | <a href='confirm/spam/{$user->screen_name}/{$user->id}'>Report Spam</a>
 	
-			</td></table>";
+			</div></div>";
 			return $out;
 }
 
@@ -1516,7 +1518,7 @@ function theme_timeline($feed)
 			if ($date_heading !== $date)
 			{
 				$date_heading = $date;
-				$rows[] = array(array('data' => "<small><b>$date</b></small>",'colspan' => 2));
+				$rows[] = array('data'  => array($date), 'class' => 'date');
 			}
 		}
 		else
@@ -1542,17 +1544,24 @@ function theme_timeline($feed)
 			$retweeted_by = $status->retweeted_by->user->screen_name;
 			$html .= "<br /><small>retweeted to you by <a href='user/{$retweeted_by}'>{$retweeted_by}</a></small>";
 		}
-		$row = array($html);
 
+		unset($row);
+		$class = 'status';
+		
 		if ($page != 'user' && $avatar)
 		{
-			array_unshift($row, $avatar);
+			$row[] = array('data' => $avatar, 'class' => 'avatar');
+			$class .= ' shift';
 		}
+		
+		$row[] = array('data' => $html, 'class' => $class);
 
+		$class = 'tweet';
 		if ($page != 'replies' && twitter_is_reply($status))
 		{
-			$row = array('class' => 'reply', 'data' => $row);
+			$class .= ' reply';
 		}
+		$row = array('data' => $row, 'class' => $class);
 
 		$rows[] = $row;
 	}
@@ -1593,12 +1602,14 @@ function theme_followers($feed, $hide_pagination = false) {
 
 		$name = theme('full_name', $user);
 		$tweets_per_day = twitter_tweets_per_day($user);
-		$rows[] = array(
-		theme('avatar', $user->profile_image_url),
+		$details =
 		   "{$name} - {$user->location}<br />" .
 		   "<small>{$user->description}<br />" .
-		   "Info: {$user->statuses_count} tweets, {$user->friends_count} friends, {$user->followers_count} followers, ~{$tweets_per_day} tweets per day</small>"
-		);
+		   "Info: {$user->statuses_count} tweets, {$user->friends_count} friends, {$user->followers_count} followers, ~{$tweets_per_day} tweets per day</small>";
+		$rows[] = array('data' => array(array('data' => theme('avatar', $user->profile_image_url), 'class' => 'avatar'),
+		                                array('data' => $details, 'class' => 'status shift')),
+		                'class' => 'tweet');
+
 	}
 
 	$content = theme('table', array(), $rows, array('class' => 'followers'));
