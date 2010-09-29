@@ -181,7 +181,7 @@ function twitter_trends_page($query)
 {
 	$trend_type = $query[1];
 	if($trend_type == '') $trend_type = 'current';
-	$request = 'http://search.twitter.com/trends/' . $trend_type . '.json';
+	$request = API_URL.'trends/' . $trend_type . '.json';
 	$trends = twitter_process($request);
 	$search_url = 'search?query=';
 	foreach($trends->trends as $temp) {
@@ -1529,7 +1529,7 @@ function theme_timeline($feed)
 		$link = theme('status_time_link', $status, !$status->is_direct);
 		$actions = theme('action_icons', $status);
 		$avatar = theme('avatar', $status->from->profile_image_url);
-		$source = $status->source ? " via {$status->source}" : '';
+	    $source = $status->source ? " from ".str_replace('rel="nofollow"', 'rel="nofollow" target="_blank"', preg_replace('/&(?![a-z][a-z0-9]*;|#[0-9]+;|#x[0-9a-f]+;)/i', '&amp;', $status->source)) : ''; //need to replace & in links with &amps and force new window on links
 		if ($status->in_reply_to_status_id)
 		{
 			$source .= " <a href='status/{$status->in_reply_to_status_id}'>in reply to {$status->in_reply_to_screen_name}</a>";
@@ -1577,6 +1577,7 @@ function theme_timeline($feed)
 		//Doesn't work. since_id returns the most recent tweets up to since_id, not since. Grrr
 		//$links[] = "<a href='{$_GET['q']}?since_id=$since_id'>Newer</a>";
 
+		$max_id = (float)$max_id - 1; //stops last tweet appearing as first tweet on next page
 		$links[] = "<a href='{$_GET['q']}?max_id=$max_id' accesskey='9'>Older</a> 9";
 		$content .= '<p>'.implode(' | ', $links).'</p>';
 	}
@@ -1602,12 +1603,24 @@ function theme_followers($feed, $hide_pagination = false) {
 
 		$name = theme('full_name', $user);
 		$tweets_per_day = twitter_tweets_per_day($user);
-		$details =
-		   "{$name} - {$user->location}<br />" .
-		   "<small>{$user->description}<br />" .
-		   "Info: {$user->statuses_count} tweets, {$user->friends_count} friends, {$user->followers_count} followers, ~{$tweets_per_day} tweets per day</small>";
+		$last_tweet = strtotime($user->status->created_at);
+		$content = "{$name}<br /><span class='about'>";
+		if($user->description != "")
+			$content .= "Bio: {$user->description}<br />";
+		if($user->location != "")
+			$content .= "Location: {$user->location}<br />";
+		$content .= "Info: {$user->statuses_count} tweets, {$user->friends_count} friends, {$user->followers_count} followers, ~{$tweets_per_day} tweets per day<br />";
+		$content .= "Last tweet: ";
+		if($user->protected == 'true' && $last_tweet == 0)
+			$content .= "Private";
+		else if($last_tweet == 0)
+			$content .= "Never tweeted";
+		else
+			$content .= twitter_date('l jS F Y', $last_tweet);
+		$content .= "</span>";
+
 		$rows[] = array('data' => array(array('data' => theme('avatar', $user->profile_image_url), 'class' => 'avatar'),
-		                                array('data' => $details, 'class' => 'status shift')),
+		                                array('data' => $content, 'class' => 'status shift')),
 		                'class' => 'tweet');
 
 	}
@@ -1620,7 +1633,9 @@ function theme_followers($feed, $hide_pagination = false) {
 
 function theme_full_name($user) {
 	$name = "<a href='user/{$user->screen_name}'>{$user->screen_name}</a>";
-	if ($user->name && $user->name != $user->screen_name) {
+	//THIS IF STATEMENT IS RETURNING FALSE EVERYTIME ?!?
+	//if ($user->name && $user->name != $user->screen_name) {
+	if($user->name != "") {
 		$name .= " ({$user->name})";
 	}
 	return $name;
