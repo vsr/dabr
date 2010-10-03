@@ -189,11 +189,13 @@ function theme_css() {
   .menu{color:#{$c->menut};background:#{$c->menubg};padding: 2px}
   .menu a{color:#{$c->menua};text-decoration: none}
   .tweet,.features{padding:5px}
-  .date{padding:5px;font-size:0.75em;font-weight:bold;color:#{$c->small}}
-  .about{font-size:0.75em;color:#{$c->small}}
+  .date{padding:5px;font-size:0.8em;font-weight:bold;color:#{$c->small}}
+  .about,.time{font-size:0.75em;color:#{$c->small}}
   .avatar{display:block; height:26px; width:26px; left:0.3em; margin:0; overflow:hidden; position:absolute;}
   .status{display:block;}
   .shift{margin-left:30px;min-height:24px;}
+  .from{font-size:0.75em;color:#{$c->small};font-family:serif;}
+  .from a{color:#{$c->small};}
 </style>";
 }
 

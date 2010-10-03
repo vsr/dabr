@@ -50,10 +50,13 @@ function setcookie_year($name, $value) {
 
 function settings_page($args) {
 	if ($args[1] == 'save') {
-		$settings['browser'] = $_POST['browser'];
-		$settings['gwt'] = $_POST['gwt'];
-		$settings['colours'] = $_POST['colours'];
-		$settings['reverse'] = $_POST['reverse'];
+		$settings['browser']     = $_POST['browser'];
+		$settings['gwt']         = $_POST['gwt'];
+		$settings['colours']     = $_POST['colours'];
+		$settings['reverse']     = $_POST['reverse'];
+		$settings['timestamp']   = $_POST['timestamp'];
+		$settings['hide_inline'] = $_POST['hide_inline'];
+		$settings['utc_offset']  = (float)$_POST['utc_offset'];
 		
 		// Save a user's oauth details to a MySQL table
 		if (MYSQL_USERS == 'ON' && $newpass = $_POST['newpassword']) {
@@ -86,6 +89,17 @@ function settings_page($args) {
 		list($name, $colours) = explode('|', $info);
 		$colour_schemes[$id] = $name;
 	}
+	
+	$utc_offset = setting_fetch('utc_offset', 0);
+/* returning 401 as it calls http://api.twitter.com/1/users/show.json?screen_name= (no username???)	
+	if (!$utc_offset) {
+		$user = twitter_user_info();
+		$utc_offset = $user->utc_offset;
+	}
+*/
+	if ($utc_offset > 0) {
+		$utc_offset = '+' . $utc_offset;
+	}
 
 	$content .= '<form action="settings/save" method="post"><p>Colour scheme:<br /><select name="colours">';
 	$content .= theme('options', $colour_schemes, setting_fetch('colours', 1));
@@ -95,6 +109,10 @@ function settings_page($args) {
 	$content .= theme('options', $gwt, setting_fetch('gwt', $GLOBALS['current_theme'] == 'text' ? 'on' : 'off'));
 	$content .= '</select><small><br />Google Web Transcoder (GWT) converts third-party sites into small, speedy pages suitable for older phones and people with less bandwidth.</small></p>';
 	$content .= '<p><label><input type="checkbox" name="reverse" value="yes" '. (setting_fetch('reverse') == 'yes' ? ' checked="checked" ' : '') .' /> Attempt to reverse the conversation thread view.</label></p>';
+	$content .= '<p><label><input type="checkbox" name="timestamp" value="yes" '. (setting_fetch('timestamp') == 'yes' ? ' checked="checked" ' : '') .' /> Show the timestamp ' . twitter_date('H:i') . ' instead of 25 sec ago</label></p>';
+	$content .= '<p><label><input type="checkbox" name="hide_inline" value="yes" '. (setting_fetch('hide_inline') == 'yes' ? ' checked="checked" ' : '') .' /> Hide inline media (eg TwitPic thumbnails)</label></p>';
+	$content .= '<p><label>The time in UTC is currently ' . gmdate('H:i') . ', by using an offset of <input type="text" name="utc_offset" value="'. $utc_offset .'" size="3" /> we display the time as ' . twitter_date('H:i') . '.<br />It is worth adjusting this value if the time appears to be wrong.</label></p>';
+
 	
 	// Allow users to choose a Dabr password if accounts are enabled
 	if (MYSQL_USERS == 'ON' && user_is_authenticated()) {

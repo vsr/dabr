@@ -179,19 +179,29 @@ function twitter_block_exists($query)
 
 function twitter_trends_page($query)
 {
-	$trend_type = $query[1];
-	if($trend_type == '') $trend_type = 'current';
-	$request = API_URL.'trends/' . $trend_type . '.json';
-	$trends = twitter_process($request);
-	$search_url = 'search?query=';
-	foreach($trends->trends as $temp) {
-		foreach($temp as $trend) {
-			$row = array('<strong><a href="' . $search_url . urlencode($trend->query) . '">' . $trend->name . '</a></strong>');
-			$rows[] = $row;
+	$woeid = $_GET['woeid'];
+	if($woeid == '') $woeid = '1'; //worldwide
+	
+	//fetch "local" names
+	$request = API_URL.'trends/available.json';
+	$local = twitter_process($request);
+	$header = '<form method="get" action="trends"><select name="woeid">';
+	$header .= '<option value="1"' . (($woeid == 1) ? ' selected="selected"' : '') . '>Worldwide</option>';
+	foreach($local as $l) {
+		if($l->woeid != 1) {
+			$header .= '<option value="' . $l->woeid . '"' . (($l->woeid == $woeid) ? ' selected="selected"' : '') . '>' . $l->name . '</option>';
 		}
 	}
-	//$headers = array('<p><a href="trends">Current</a> | <a href="trends/daily">Daily</a> | <a href="trends/weekly">Weekly</a></p>'); //output for daily and weekly not great at the moment
-	$headers = array();
+	$header .= '</select> <input type="submit" value="Go" /></form>';
+	
+	$request = API_URL.'trends/' . $woeid . '.json';
+	$trends = twitter_process($request);
+	$search_url = 'search?query=';
+	foreach($trends[0]->trends as $trend) {
+		$row = array('<strong><a href="' . str_replace('http://search.twitter.com/search?q=', $search_url, $trend->url) . '">' . $trend->name . '</a></strong>');
+		$rows[] = array('data' => $row,  'class' => 'tweet');
+	}
+	$headers = array($header);
 	$content = theme('table', $headers, $rows, array('class' => 'timeline'));
 	theme('page', 'Trends', $content);
 }
@@ -200,7 +210,17 @@ function js_counter($name, $length='140')
 {
 	$script = '<script type="text/javascript">
 function updateCount() {
-document.getElementById("remaining").innerHTML = ' . $length . ' - document.getElementById("' . $name . '").value.length;
+var remaining = ' . $length . ' - document.getElementById("' . $name . '").value.length;
+document.getElementById("remaining").innerHTML = remaining;
+if(remaining < 0) {
+ var colour = "#FF0000";
+ var weight = "bold";
+} else {
+ var colour = "";
+ var weight = "";
+}
+document.getElementById("remaining").style.color = colour;
+document.getElementById("remaining").style.fontWeight = weight;
 setTimeout(updateCount, 400);
 }
 updateCount();
@@ -523,31 +543,36 @@ function flickr_encode($num) {
 }
 
 function twitter_photo_replace($text) {
+	if (setting_fetch('hide_inline')) {
+		return $text;
+	}
 	$images = array();
 	$tmp = strip_tags($text);
 
 	// List of supported services. Array format: pattern => thumbnail url
 	$services = array(
-    '#youtube\.com\/watch\?v=([_-\d\w]+)#i' => 'http://i.ytimg.com/vi/%s/1.jpg',
-    '#youtu\.be\/([_-\d\w]+)#i' => 'http://i.ytimg.com/vi/%s/1.jpg',
-	'#qik\.ly\/([_-\d\w]+)#i' => 'http://qik.ly/%s.jpg',
-    '#twitpic.com/([\d\w]+)#i' => 'http://twitpic.com/show/thumb/%s',
-    '#twitgoo.com/([\d\w]+)#i' => 'http://twitgoo.com/show/thumb/%s',
-    '#yfrog.com/([\w\d]+)#i' => 'http://yfrog.com/%s.th.jpg',
-    '#hellotxt.com/i/([\d\w]+)#i' => 'http://hellotxt.com/image/%s.s.jpg',
-    '#ts1.in/(\d+)#i' => 'http://ts1.in/mini/%s',
-    '#moby.to/\??([\w\d]+)#i' => 'http://moby.to/%s:square',
-    '#mobypicture.com/\?([\w\d]+)#i' => 'http://mobypicture.com/?%s:square',
-    '#twic.li/([\w\d]{2,7})#' => 'http://twic.li/api/photo.jpg?id=%s&size=small',
-    '#tweetphoto\.com\/(\d+)#' => 'http://api.plixi.com/api/tpapi.svc/imagefromurl?url=http://tweetphoto.com/%s',
-	'#plixi\.com\/p\/(\d+)#' => 'http://api.plixi.com/api/tpapi.svc/imagefromurl?url=http://plixi.com/p/%s',
-	'#pic\.gd\/([\w\d]+)#' => 'http://api.plixi.com/api/tpapi.svc/imagefromurl?url=http://www.pic.gd/%s',
-	'#phz.in/([\d\w]+)#' => 'http://i.tinysrc.mobi/x50/http://api.phreadz.com/thumb/%s?t=code',
-	'#twitvid.com/([\w]+)#i' => 'http://i.tinysrc.mobi/x50/http://images.twitvid.com/%s.jpg',
-	'#imgur.com/([\w]{5})[\s\.ls][\.\w]*#i' => 'http://imgur.com/%ss.png',
-	'#imgur.com/gallery/([\w]+)#i' => 'http://imgur.com/%ss.png',
- 	'#brizzly.com/pic/([\w]+)#i' => 'http://pics.brizzly.com/thumb_sm_%s.jpg',
-	'#img.ly/([\w\d]+)#i' => 'http://img.ly/show/thumb/%s',
+	'#youtube\.com\/watch\?v=([_-\d\w]+)#i'   => 'http://i.ytimg.com/vi/%s/1.jpg',
+	'#youtu\.be\/([_-\d\w]+)#i'               => 'http://i.ytimg.com/vi/%s/1.jpg',
+	'#qik\.ly\/([_-\d\w]+)#i'                 => 'http://qik.ly/%s.jpg',
+	'#twitpic\.com\/([\d\w]+)#i'              => 'http://twitpic.com/show/thumb/%s',
+	'#twitgoo\.com\/([\d\w]+)#i'              => 'http://twitgoo.com/show/thumb/%s',
+	'#yfrog\.com\/([\w\d]+)#i'                => 'http://yfrog.com/%s.th.jpg',
+	'#yfrog\.us\/([\w\d]+)#i'                 => 'http://yfrog.com/%s.th.jpg',
+	'#hellotxt\.com\/i\/([\d\w]+)#i'          => 'http://hellotxt.com/image/%s.s.jpg',
+	'#ts1\.in\/(\d+)#i'                       => 'http://ts1.in/mini/%s',
+	'#moby\.to\/\?([\w\d]+)#i'                => 'http://moby.to/%s:square',
+	'#mobypicture\.com\/\?([\w\d]+)#i'        => 'http://mobypicture.com/?%s:square',
+	'#twic\.li\/([\w\d]{2,7})#'               => 'http://twic.li/api/photo.jpg?id=%s&size=small',
+	'#tweetphoto\.com\/(\d+)#'                => 'http://api.plixi.com/api/tpapi.svc/imagefromurl?url=http://tweetphoto.com/%s',
+	'#plixi\.com\/p\/(\d+)#'                  => 'http://api.plixi.com/api/tpapi.svc/imagefromurl?url=http://plixi.com/p/%s',
+	'#pic\.gd\/([\w\d]+)#'                    => 'http://api.plixi.com/api/tpapi.svc/imagefromurl?url=http://www.pic.gd/%s',
+	'#phz\.in\/([\d\w]+)#'                    => 'http://i.tinysrc.mobi/x50/http://api.phreadz.com/thumb/%s?t=code',
+	'#twitvid\.com\/([\w]+)#i'                => 'http://i.tinysrc.mobi/x50/http://images.twitvid.com/%s.jpg',
+	'#imgur\.com\/([\w]{5})[\s\.ls][\.\w]*#i' => 'http://imgur.com/%ss.png',
+	'#imgur\.com\/gallery\/([\w]+)#i'         => 'http://imgur.com/%ss.png',
+	'#brizzly\.com\/pic\/([\w]+)#i'           => 'http://pics.brizzly.com/thumb_sm_%s.jpg',
+	'#img\.ly\/([\w\d]+)#i'                   => 'http://img.ly/show/thumb/%s',
+	'#picplz\.com\/([\d\w\.]+)#'              => 'http://picplz.com/%s/thumb',
 	);
 
 	// Loop through each service and show images for matching URLs
@@ -728,11 +753,11 @@ function get_thumbnail($service, $id)
 
 function format_interval($timestamp, $granularity = 2) {
 	$units = array(
-    'years' => 31536000,
-    'days' => 86400,
-    'hours' => 3600,
-    'min' => 60,
-    'sec' => 1
+	'years' => 31536000,
+	'days' => 86400,
+	'hours' => 3600,
+	'min' => 60,
+	'sec' => 1
 	);
 	$output = '';
 	foreach ($units as $key => $value) {
@@ -1046,7 +1071,7 @@ function twitter_search_page() {
 function twitter_search($search_query) {
 	$page = (int) $_GET['page'];
 	if ($page == 0) $page = 1;
-	$request = 'http://search.twitter.com/search.json?q=' . urlencode($search_query).'&page='.$page;
+	$request = 'http://search.twitter.com/search.json?result_type=recent&q=' . urlencode($search_query).'&page='.$page;
 	$tl = twitter_process($request);
 	$tl = twitter_standard_timeline($tl->results, 'search');
 	return $tl;
@@ -1335,7 +1360,7 @@ function theme_avatar($url, $force_large = false) {
 function theme_status_time_link($status, $is_link = true) {
 	$time = strtotime($status->created_at);
 	if ($time > 0) {
-		if (twitter_date('dmy') == twitter_date('dmy', $time)) {
+		if (twitter_date('dmy') == twitter_date('dmy', $time) && !setting_fetch('timestamp')) {
 			$out = format_interval(time() - $time, 1). ' ago';
 		} else {
 			$out = twitter_date('H:i', $time);
@@ -1344,11 +1369,12 @@ function theme_status_time_link($status, $is_link = true) {
 		$out = $status->created_at;
 	}
 	if ($is_link)
-	$out = "<a href='status/{$status->id}'>$out</a>";
-	return "<small>$out</small>";
+		$out = "<a href='status/{$status->id}' class='time'>$out</a>";
+	return $out;
 }
 
 function twitter_date($format, $timestamp = null) {
+/*
 	static $offset;
 	if (!isset($offset)) {
 		if (user_is_authenticated()) {
@@ -1363,6 +1389,8 @@ function twitter_date($format, $timestamp = null) {
 			$offset = 0;
 		}
 	}
+*/
+	$offset = setting_fetch('utc_offset', 0) * 3600;
 	if (!isset($timestamp)) {
 		$timestamp = time();
 	}
