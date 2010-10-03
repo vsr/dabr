@@ -228,118 +228,111 @@ updateCount();
 	return $script;
 }
 
-function twitter_twitpic_page($query)
-{
-	if (user_type() == 'oauth')
-	{
+function twitter_twitpic_page($query) {
+	if (user_type() == 'oauth') {
 		//V2 of the Twitpic API allows for OAuth
 		//http://dev.twitpic.com/docs/2/upload/
 
 		//Has the user submitted an image and message?
-		if ($_POST['message'])
-		{
+		if ($_POST['message']) {
 			$twitpicURL = 'http://api.twitpic.com/2/upload.json';
-				
+
 			//Set the initial headers
 			$header = array(
-									'X-Auth-Service-Provider: https://api.twitter.com/1/account/verify_credentials.json', 
-									'X-Verify-Credentials-Authorization: OAuth realm="http://api.twitter.com/"'
-									);
+				'X-Auth-Service-Provider: https://api.twitter.com/1/account/verify_credentials.json', 
+				'X-Verify-Credentials-Authorization: OAuth realm="http://api.twitter.com/"'
+			);
+
+			//Using Abraham's OAuth library
+			require_once('OAuth.php');
+
+			// instantiating OAuth customer
+			$consumer = new OAuthConsumer(OAUTH_CONSUMER_KEY, OAUTH_CONSUMER_SECRET);
+
+			// instantiating signer
+			$sha1_method = new OAuthSignatureMethod_HMAC_SHA1();
+
+			// user's token
+			list($oauth_token, $oauth_token_secret) = explode('|', $GLOBALS['user']['password']);
+			$token = new OAuthConsumer($oauth_token, $oauth_token_secret);
+
+			// Generate all the OAuth parameters needed
+			$signingURL = 'https://api.twitter.com/1/account/verify_credentials.json';
+			$request = OAuthRequest::from_consumer_and_token($consumer, $token, 'GET', $signingURL, array());
+			$request->sign_request($sha1_method, $consumer, $token);
+
+			$header[1] .= ", oauth_consumer_key=\"" . $request->get_parameter('oauth_consumer_key') ."\"";
+			$header[1] .= ", oauth_signature_method=\"" . $request->get_parameter('oauth_signature_method') ."\"";
+			$header[1] .= ", oauth_token=\"" . $request->get_parameter('oauth_token') ."\"";
+			$header[1] .= ", oauth_timestamp=\"" . $request->get_parameter('oauth_timestamp') ."\"";
+			$header[1] .= ", oauth_nonce=\"" . $request->get_parameter('oauth_nonce') ."\"";
+			$header[1] .= ", oauth_version=\"" . $request->get_parameter('oauth_version') ."\"";
+			$header[1] .= ", oauth_signature=\"" . urlencode($request->get_parameter('oauth_signature')) ."\"";
+
+			//open connection
+			$ch = curl_init();
 										
-									//Using Abraham's OAuth library
-									require_once('OAuth.php');
+			//Set paramaters
+			curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 
-									// instantiating OAuth customer
-									$consumer = new OAuthConsumer(OAUTH_CONSUMER_KEY, OAUTH_CONSUMER_SECRET);
-
-									// instantiating signer
-									$sha1_method = new OAuthSignatureMethod_HMAC_SHA1();
-
-									// user's token
-									list($oauth_token, $oauth_token_secret) = explode('|', $GLOBALS['user']['password']);
-									$token = new OAuthConsumer($oauth_token, $oauth_token_secret);
-
-									// Generate all the OAuth parameters needed
-									$signingURL = 'https://api.twitter.com/1/account/verify_credentials.json';
-									$request = OAuthRequest::from_consumer_and_token($consumer, $token, 'GET', $signingURL, array());
-									$request->sign_request($sha1_method, $consumer, $token);
-
-									$header[1] .= ", oauth_consumer_key=\"" . $request->get_parameter('oauth_consumer_key') ."\"";
-									$header[1] .= ", oauth_signature_method=\"" . $request->get_parameter('oauth_signature_method') ."\"";
-									$header[1] .= ", oauth_token=\"" . $request->get_parameter('oauth_token') ."\"";
-									$header[1] .= ", oauth_timestamp=\"" . $request->get_parameter('oauth_timestamp') ."\"";
-									$header[1] .= ", oauth_nonce=\"" . $request->get_parameter('oauth_nonce') ."\"";
-									$header[1] .= ", oauth_version=\"" . $request->get_parameter('oauth_version') ."\"";
-									$header[1] .= ", oauth_signature=\"" . urlencode($request->get_parameter('oauth_signature')) ."\"";
-
-									//open connection
-									$ch = curl_init();
+			//set the url, number of POST vars, POST data
+			curl_setopt($ch,CURLOPT_URL,$twitpicURL);
 										
-									//Set paramaters
-									curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-									curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-									curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+			//TwitPic requires the data to be sent as POST
+			$media_data = array(
+				'media' => '@'.$_FILES['media']['tmp_name'],
+				'message' => ' ' . stripslashes($_POST['message']), //A space is needed because twitpic b0rks if first char is an @
+				'key'=>TWITPIC_API_KEY
+			);
 
-									//set the url, number of POST vars, POST data
-									curl_setopt($ch,CURLOPT_URL,$twitpicURL);
-										
-									//TwitPic requires the data to be sent as POST
-									$media_data = array(
-									'media' => '@'.$_FILES['media']['tmp_name'],
-							      'message' => ' ' . stripslashes($_POST['message']), //A space is needed because twitpic b0rks if first char is an @
-							      'key'=>TWITPIC_API_KEY
-									);
+			curl_setopt($ch, CURLOPT_POST, true);
+			curl_setopt($ch,CURLOPT_POSTFIELDS,$media_data);
 
-									curl_setopt($ch, CURLOPT_POST, true);
-									curl_setopt($ch,CURLOPT_POSTFIELDS,$media_data);
+			//execute post
+			$result = curl_exec($ch);
+			$response_info=curl_getinfo($ch);
 
-									//execute post
-									$result = curl_exec($ch);
-									$response_info=curl_getinfo($ch);
+			//close connection
+			curl_close($ch);
 
-									//close connection
-									curl_close($ch);
+			if ($response_info['http_code'] == 200) { //Success
+				//Decode the response
+				$json = json_decode($result);
+				$id = $json->id;
+				$twitpicURL = $json->url;
+				$text = $json->text;
+				$message = trim($text) . " " . $twitpicURL;
 
-									if ($response_info['http_code'] == 200) //Success
-									{
-										//Decode the response
-										$json = json_decode($result);
-										$id = $json->id;
-										$twitpicURL = $json->url;
-										$text = $json->text;
-										$message = trim($text) . " " . $twitpicURL;
+				//Send the user's message to twitter
+				$request = API_URL.'statuses/update.json';
 
-										//Send the user's message to twitter
-										$request = API_URL.'statuses/update.json';
+				$post_data = array('source' => 'dabr', 'status' => $message);
+				$status = twitter_process($request, $post_data);
 
-										$post_data = array('source' => 'dabr', 'status' => $message);
-										$status = twitter_process($request, $post_data);
-
-										//Back to the timeline
-										twitter_refresh("twitpic/confirm/$id");
-									}
-									else
-									{
-										$content = "<p>Twitpic upload failed. No idea why!</p>";
-										$content .=  "<pre>";
-										$json = json_decode($result);
-										$content .= "<br / ><b>message</b> " . urlencode($_POST['message']);
-										$content .= "<br / ><b>json</b> " . print_r($json);
-										$content .= "<br / ><b>Response</b> " . print_r($response_info);
-										$content .= "<br / ><b>header</b> " . print_r($header);
-										$content .= "<br / ><b>media_data</b> " . print_r($media_data);
-										$content .= "<br /><b>URL was</b> " . $twitpicURL;
-										$content .= "<br /><b>File uploaded was</b> " . $_FILES['media']['tmp_name'];
-										$content .= "</pre>";
-									}
+				//Back to the timeline
+				twitter_refresh("twitpic/confirm/$id");
+			}
+			else {
+				$content = "<p>Twitpic upload failed. No idea why!</p>";
+				$content .=  "<pre>";
+				$json = json_decode($result);
+				$content .= "<br / ><b>message</b> " . urlencode($_POST['message']);
+				$content .= "<br / ><b>json</b> " . print_r($json);
+				$content .= "<br / ><b>Response</b> " . print_r($response_info);
+				$content .= "<br / ><b>header</b> " . print_r($header);
+				$content .= "<br / ><b>media_data</b> " . print_r($media_data);
+				$content .= "<br /><b>URL was</b> " . $twitpicURL;
+				$content .= "<br /><b>File uploaded was</b> " . $_FILES['media']['tmp_name'];
+				$content .= "</pre>";
+			}
 		}
-		elseif ($query[1] == 'confirm')
-		{
+		elseif ($query[1] == 'confirm') {
 			$content = "<p>Upload success. Image posted to Twitter.</p><p><img src='http://twitpic.com/show/thumb/{$query[2]}' alt='' /></p>";
 		}
-		else
-		{
-			$content = "<form method='post' action='twitpic' enctype='multipart/form-data'>Image <input type='file' name='media' /><br />Message (optional):<br /><textarea name='message' style='width:100%; max-width: 400px;' rows='3' id='message'></textarea><br><input type='submit' value='Send'><span id='remaining'>110</span></form>";
+		else {
+			$content = "<form method='post' action='twitpic' enctype='multipart/form-data'>Image <input type='file' name='media' /><br />Message (optional):<br /><textarea name='message' style='width:90%; max-width: 400px;' rows='3' id='message'></textarea><br><input type='submit' value='Send'><span id='remaining'>110</span></form>";
 			$content .= js_counter("message", "110");
 		}
 
@@ -564,8 +557,8 @@ function twitter_photo_replace($text) {
 	'#mobypicture\.com\/\?([\w\d]+)#i'        => 'http://mobypicture.com/?%s:square',
 	'#twic\.li\/([\w\d]{2,7})#'               => 'http://twic.li/api/photo.jpg?id=%s&size=small',
 	'#tweetphoto\.com\/(\d+)#'                => 'http://api.plixi.com/api/tpapi.svc/imagefromurl?url=http://tweetphoto.com/%s',
-	'#plixi\.com\/p\/(\d+)#'                  => 'http://api.plixi.com/api/tpapi.svc/imagefromurl?url=http://plixi.com/p/%s',
-	'#pic\.gd\/([\w\d]+)#'                    => 'http://api.plixi.com/api/tpapi.svc/imagefromurl?url=http://www.pic.gd/%s',
+	'#plixi\.com\/p\/(\d+)#'                  => 'http://api.plixi.com/api/tpapi.svc/imagefromurl?url=http://plixi.com/p/%s&size=small',
+//	'#pic\.gd\/([\w\d]+)#'                    => 'http://api.plixi.com/api/tpapi.svc/imagefromurl?url=http://www.pic.gd/%s',
 	'#phz\.in\/([\d\w]+)#'                    => 'http://i.tinysrc.mobi/x50/http://api.phreadz.com/thumb/%s?t=code',
 	'#twitvid\.com\/([\w]+)#i'                => 'http://i.tinysrc.mobi/x50/http://images.twitvid.com/%s.jpg',
 	'#imgur\.com\/([\w]{5})[\s\.ls][\.\w]*#i' => 'http://imgur.com/%ss.png',
@@ -1042,7 +1035,7 @@ function theme_directs_form($to) {
 	} else {
 		$html_to .= "To: <input name='to'><br />Message:";
 	}
-	$content = "<form action='directs/send' method='post'>$html_to<br><textarea name='message' style='width:100%; max-width: 400px;' rows='3' id='message'></textarea><br><input type='submit' value='Send'><span id='remaining'>140</span></form>";
+	$content = "<form action='directs/send' method='post'>$html_to<br><textarea name='message' style='width:90%; max-width: 400px;' rows='3' id='message'></textarea><br><input type='submit' value='Send'><span id='remaining'>140</span></form>";
 	$content .= js_counter("message");
 	return $content;
 }
@@ -1249,7 +1242,7 @@ function theme_retweet($status)
 	$content .= "<p>Old style editable retweet:</p>
 					<form action='update' method='post'>
 						<input type='hidden' name='from' value='$from' />
-						<textarea name='status' style='width:100%; max-width: 400px;' rows='3' id='status'>$text</textarea>
+						<textarea name='status' style='width:90%; max-width: 400px;' rows='3' id='status'>$text</textarea>
 						<br/>
 						<input type='submit' value='Retweet' />
 						<span id='remaining'>" . (140 - $length) ."</span>
@@ -1273,83 +1266,76 @@ function theme_user_header($user) {
 	$full_avatar = str_replace('_normal.', '.', $user->profile_image_url);
 	$link = theme('external_link', $user->url);
 	//Some locations have a prefix which should be removed (UbertTwitter and iPhone)
+	//Sorry if my PC has converted from UTF-8 with the U (artesea)
 	$cleanLocation = str_replace(array("iPhone: ","ÜT: "),"",$user->location);
 	$raw_date_joined = strtotime($user->created_at);
 	$date_joined = date('jS M Y', $raw_date_joined);
 	$tweets_per_day = twitter_tweets_per_day($user, 1);
-	$out = "<div class='profile'>
-<span class='avatar'>".theme('external_link', $full_avatar, theme('avatar', $user->profile_image_url))."</span>
-<span class='status shift'><b>{$name}</b>
-<span class='about'>";
+	$out = "<div class='profile'>";
+    $out .= "<span class='avatar'>".theme('external_link', $full_avatar, theme('avatar', $user->profile_image_url))."</span>";
+	$out .= "<span class='status shift'><b>{$name}</b><br />";
+	$out .= "<span class='about'>";
 	if ($user->verified == true) {
-		$out .= '<br /><strong>Verified Account</strong>';
+		$out .= '<strong>Verified Account</strong><br />';
 	}
 	if ($user->protected == true) {
-		$out .= '<br /><strong>Private/Protected Tweets</strong>';
+		$out .= '<strong>Private/Protected Tweets</strong><br />';
 	}
 
-	$out .= "
-			<br />Bio: {$user->description}
-			<br />Link: {$link}
-			<br />Location: <a href=\"http://maps.google.com/m?q={$cleanLocation}\" target=\"_blank\">{$user->location}</a>
-			<br />Joined: {$date_joined} (~$tweets_per_day tweets per day)
-			</span></span>
-			<div class='features'>
-			{$user->statuses_count} tweets | ";
+	$out .= "Bio: {$user->description}<br />";
+	$out .= "Link: {$link}<br />";
+	$out .= "Location: <a href=\"http://maps.google.com/m?q={$cleanLocation}\" target=\"_blank\">{$user->location}</a><br />";
+	$out .= "Joined: {$date_joined} (~" . pluralise('tweet', $tweets_per_day, true) . " per day)";
+	$out .= "</span></span>";
+	$out .= "<div class='features'>";
+	$out .= pluralise('tweet', $user->statuses_count, true);
 
-			//If the authenticated user is not following the protected used, the API will return a 401 error when trying to view friends, followers and favourites
-			//This is not the case on the Twitter website
-			//To avoid the user being logged out, check to see if she is following the protected user. If not, don't create links to friends, followers and favourites
-			if ($user->protected == true && $followed_by == false)
-			{
-				$out .= "{$user->followers_count} followers
-				| {$user->friends_count} friends</a>
-				| {$user->favourites_count} favourites</a>";
-			}
-			else
-			{
-				$out .= "<a href='followers/{$user->screen_name}'>{$user->followers_count} followers</a>
-				| <a href='friends/{$user->screen_name}'>{$user->friends_count} friends</a>
-				| <a href='favourites/{$user->screen_name}'>{$user->favourites_count} favourites</a>";
-			}
+	//If the authenticated user is not following the protected used, the API will return a 401 error when trying to view friends, followers and favourites
+	//This is not the case on the Twitter website
+	//To avoid the user being logged out, check to see if she is following the protected user. If not, don't create links to friends, followers and favourites
+	if ($user->protected == true && $followed_by == false) {
+		$out .= " | " . pluralise('follower', $user->followers_count, true);
+		$out .= " | " . pluralise('friend', $user->friends_count, true);
+		$out .= " | " . pluralise('favourite', $user->favourites_count, true);
+	}
+	else {
+		$out .= " | <a href='followers/{$user->screen_name}'>" . pluralise('follower', $user->followers_count, true) . "</a>";
+		$out .= " | <a href='friends/{$user->screen_name}'>" . pluralise('friend', $user->friends_count, true) . "</a>";
+		$out .= " | <a href='favourites/{$user->screen_name}'>" . pluralise('favourite', $user->favourites_count, true) . "</a>";
+	}
 
-			$out.= "	| <a href='lists/{$user->screen_name}'>{$user->listed_count} Lists</a>
-				| <a href='directs/create/{$user->screen_name}'>Direct Message</a>";
-			//NB we can tell if the user can be sent a DM $following->relationship->target->following;
-			//Would removing this link confuse users?
+	$out .= " | <a href='lists/{$user->screen_name}'>" . pluralise('list', $user->listed_count, true) . "</a>";
+	$out .=	" | <a href='directs/create/{$user->screen_name}'>Direct Message</a>";
+	//NB we can tell if the user can be sent a DM $following->relationship->target->following;
+	//Would removing this link confuse users?
 
-			//Deprecated http://apiwiki.twitter.com/Twitter-REST-API-Method%3A-users%C2%A0show
-			//if ($user->following !== true)
-			if ($followed_by == false)
-			{
-				$out .= " | <a href='follow/{$user->screen_name}'>Follow</a>";
-			}
-			else
-			{
-				$out .= " | <a href='unfollow/{$user->screen_name}'>Unfollow</a>";
-			}
-
-			//We need to pass the User Name and the User ID.  The Name is presented in the UI, the ID is used in checking
-			$out.= " | <a href='confirm/block/{$user->screen_name}/{$user->id}'>Block | Unblock</a>";
-
-
-			/*
-			 //This should work, but it doesn't. Grrr.
-			 $blocked = $following->relationship->source->blocking; //The $user is blocked by the authenticating
-			 if ($blocked == true)
-			 {
-			 $out.= " | <a href='confirm/block/{$user->screen_name}/{$user->id}'>Unblock</a>";
-			 }
-			 else
-			 {
-			 $out.= " | <a href='confirm/block/{$user->screen_name}/{$user->id}'>Block</a>";
-			 }
-			 */
-
-			$out.= " | <a href='confirm/spam/{$user->screen_name}/{$user->id}'>Report Spam</a>
+	//Deprecated http://apiwiki.twitter.com/Twitter-REST-API-Method%3A-users%C2%A0show
+	//if ($user->following !== true)
+	if ($followed_by == false) {
+		$out .= " | <a href='follow/{$user->screen_name}'>Follow</a>";
+	}
+	else {
+		$out .= " | <a href='unfollow/{$user->screen_name}'>Unfollow</a>";
+	}
 	
-			</div></div>";
-			return $out;
+	//We need to pass the User Name and the User ID.  The Name is presented in the UI, the ID is used in checking
+	$out.= " | <a href='confirm/block/{$user->screen_name}/{$user->id}'>(Un)Block</a>";
+	/*
+	//This should work, but it doesn't. Grrr.
+	$blocked = $following->relationship->source->blocking; //The $user is blocked by the authenticating
+	if ($blocked == true)
+	{
+		$out.= " | <a href='confirm/block/{$user->screen_name}/{$user->id}'>Unblock</a>";
+	}
+	else
+	{
+		$out.= " | <a href='confirm/block/{$user->screen_name}/{$user->id}'>Block</a>";
+	}
+	*/
+
+	$out .= " | <a href='confirm/spam/{$user->screen_name}/{$user->id}'>Report Spam</a>";
+	$out .= "</div></div>";
+	return $out;
 }
 
 function theme_avatar($url, $force_large = false) {
@@ -1423,20 +1409,20 @@ function twitter_standard_timeline($feed, $source) {
 		case 'search':
 			foreach ($feed as $status) {
 				$output[(string) $status->id] = (object) array(
-          'id' => $status->id,
-          'text' => $status->text,
-          'source' => strpos($status->source, '&lt;') !== false ? html_entity_decode($status->source) : $status->source,
-          'from' => (object) array(
-            'id' => $status->from_user_id,
-            'screen_name' => $status->from_user,
-            'profile_image_url' => $status->profile_image_url,
-				),
-          'to' => (object) array(
-            'id' => $status->to_user_id,
-            'screen_name' => $status->to_user,
-				),
-          'created_at' => $status->created_at,
-          'geo' => $status->geo,
+					'id' => $status->id,
+					'text' => $status->text,
+					'source' => strpos($status->source, '&lt;') !== false ? html_entity_decode($status->source) : $status->source,
+					'from' => (object) array(
+						'id' => $status->from_user_id,
+						'screen_name' => $status->from_user,
+						'profile_image_url' => $status->profile_image_url,
+					),
+					'to' => (object) array(
+						'id' => $status->to_user_id,
+						'screen_name' => $status->to_user,
+					),
+					'created_at' => $status->created_at,
+					'geo' => $status->geo,
 				);
 			}
 			return $output;
@@ -1465,18 +1451,18 @@ function twitter_standard_timeline($feed, $source) {
 				$id = preg_match_one('#msgtxt(\d*)#', $tweet);
 				if (!$id) continue;
 				$output[$id] = (object) array(
-          'id' => $id,
-          'text' => strip_tags(preg_match_one('#</a>: (.*)</span>#', $tweet)),
-          'source' => preg_match_one('#>from (.*)</span>#', $tweet),
-          'from' => (object) array(
-            'id' => preg_match_one('#profile_images/(\d*)#', $tweet),
-            'screen_name' => preg_match_one('#twitter.com/([^"]+)#', $tweet),
-            'profile_image_url' => preg_match_one('#src="([^"]*)"#' , $tweet),
-				),
-          'to' => (object) array(
-            'screen_name' => preg_match_one('#@([^<]+)#', $tweet),
-				),
-          'created_at' => str_replace('about', '', preg_match_one('#info">\s(.*)#', $tweet)),
+					'id' => $id,
+					'text' => strip_tags(preg_match_one('#</a>: (.*)</span>#', $tweet)),
+					'source' => preg_match_one('#>from (.*)</span>#', $tweet),
+					'from' => (object) array(
+						'id' => preg_match_one('#profile_images/(\d*)#', $tweet),
+						'screen_name' => preg_match_one('#twitter.com/([^"]+)#', $tweet),
+						'profile_image_url' => preg_match_one('#src="([^"]*)"#' , $tweet),
+					),
+					'to' => (object) array(
+						'screen_name' => preg_match_one('#@([^<]+)#', $tweet),
+					),
+					'created_at' => str_replace('about', '', preg_match_one('#info">\s(.*)#', $tweet)),
 				);
 			}
 			// Second pass: OPTIONALLY attempt to reverse the order of tweets
@@ -1557,21 +1543,18 @@ function theme_timeline($feed)
 		$link = theme('status_time_link', $status, !$status->is_direct);
 		$actions = theme('action_icons', $status);
 		$avatar = theme('avatar', $status->from->profile_image_url);
-	    $source = $status->source ? " from ".str_replace('rel="nofollow"', 'rel="nofollow" target="_blank"', preg_replace('/&(?![a-z][a-z0-9]*;|#[0-9]+;|#x[0-9a-f]+;)/i', '&amp;', $status->source)) : ''; //need to replace & in links with &amps and force new window on links
-		if ($status->in_reply_to_status_id)
-		{
+		$source = $status->source ? " from ".str_replace('rel="nofollow"', 'rel="nofollow" target="_blank"', preg_replace('/&(?![a-z][a-z0-9]*;|#[0-9]+;|#x[0-9a-f]+;)/i', '&amp;', $status->source)) : ''; //need to replace & in links with &amps and force new window on links
+		if ($status->in_reply_to_status_id)	{
 			$source .= " <a href='status/{$status->in_reply_to_status_id}'>in reply to {$status->in_reply_to_screen_name}</a>";
 		}
-		if ($status->retweet_count)
-		{
-			$source .= " Retweeted {$status->retweet_count} times";
+		if ($status->retweet_count)	{
+			$source .= " retweeted " . pluralise('time', $status->retweet_count, true);
+		}
+		if ($status->retweeted_by) {
+			$retweeted_by = $status->retweeted_by->user->screen_name;
+			$source .= "<br />retweeted to you by <a href='user/{$retweeted_by}'>{$retweeted_by}</a>";
 		}
 		$html = "<b><a href='user/{$status->from->screen_name}'>{$status->from->screen_name}</a></b> $actions $link<br />{$text} <small>$source</small>";
-		if ($status->retweeted_by)
-		{
-			$retweeted_by = $status->retweeted_by->user->screen_name;
-			$html .= "<br /><small>retweeted to you by <a href='user/{$retweeted_by}'>{$retweeted_by}</a></small>";
-		}
 
 		unset($row);
 		$class = 'status';
@@ -1637,7 +1620,12 @@ function theme_followers($feed, $hide_pagination = false) {
 			$content .= "Bio: {$user->description}<br />";
 		if($user->location != "")
 			$content .= "Location: {$user->location}<br />";
-		$content .= "Info: {$user->statuses_count} tweets, {$user->friends_count} friends, {$user->followers_count} followers, ~{$tweets_per_day} tweets per day<br />";
+		$content .= "Info: ";
+		$content .= pluralise('tweet', $user->statuses_count, true) . ", ";
+		$content .= pluralise('friend', $user->friends_count, true) . ", ";
+		$content .= pluralise('follower', $user->followers_count, true) . ", ";
+		$content .= pluralise('follower', $user->followers_count, true) . ", ";
+		$content .= "~" . pluralise('tweet', $tweets_per_day, true) . " per day<br />";
 		$content .= "Last tweet: ";
 		if($user->protected == 'true' && $last_tweet == 0)
 			$content .= "Private";
@@ -1822,4 +1810,8 @@ function theme_action_icon($url, $image_url, $text) {
 	return "<a href='$url'><img src='$image_url' /></a>";
 }
 
+function pluralise($word, $count, $show = FALSE) {
+	if($show) $word = "{$count} {$word}";
+	return $word . (($count != 1) ? 's' : '');
+}
 ?>
