@@ -141,14 +141,24 @@ function theme_page($title, $content) {
 	}
 	ob_start('ob_gzhandler');
 	header('Content-Type: text/html; charset=utf-8');
-	echo '<!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.0//EN" "http://www.wapforum.org/DTD/xhtml-mobile10.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head><title>',$_SERVER['SERVER_NAME'],' - ',$title,'</title><base href="',BASE_URL,'" />
-'.$meta.theme('css').'
-<meta name="viewport" content="width=device-width; initial-scale=1.0;" />
-</head>
-<body>', $body, '</body>
-</html>';
+	echo	'<!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.0//EN" "http://www.wapforum.org/DTD/xhtml-mobile10.dtd">
+		<html xmlns="http://www.w3.org/1999/xhtml">
+			<head>
+				<title>',$_SERVER['SERVER_NAME'],' - ',$title,'</title>
+				<base href="',BASE_URL,'" />
+				'.$meta.theme('css').'
+				<meta name="viewport" content="width=device-width; initial-scale=1.0;" />
+			</head>
+			<body>';
+	if (file_exists("common/admob.php"))
+	{
+		echo '<div class=\"advert\">';
+		require_once("common/admob.php");
+		echo '</div>';
+	}
+	echo 			$body,
+			'</body>
+		</html>';
 	exit();
 }
 

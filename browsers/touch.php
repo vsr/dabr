@@ -19,14 +19,26 @@ function touch_theme_page($title, $content) {
 	$body .= theme('google_analytics');
 	ob_start('ob_gzhandler');
 	header('Content-Type: text/html; charset=utf-8');
-	echo '<!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.0//EN" "http://www.wapforum.org/DTD/xhtml-mobile10.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head><meta name="viewport" content="width=320"/><title>',$title,'</title><base href="',BASE_URL,'" />
-'.theme('css').'
-</head>
-<body id="thepage">', $body, '</body>
-</html>';
-	exit();
+	echo 	'<!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.0//EN" "http://www.wapforum.org/DTD/xhtml-mobile10.dtd">
+		<html xmlns="http://www.w3.org/1999/xhtml">
+			<head>
+				<meta name="viewport" content="width=device-width; initial-scale=1.0;" />
+				<title>',$title,'</title>
+				<base href="',BASE_URL,'" />
+				'.theme('css').'
+			</head>
+			<body id="thepage">';
+
+        if (file_exists("common/admob.php"))
+        {
+		                echo '<div class=\"advert\">';
+                		require_once("common/admob.php");
+		                echo '</div>';
+        }
+        echo			$body,
+			'</body>
+		</html>';
+        exit();
 }
 
 function touch_theme_menu_top() {
