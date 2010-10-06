@@ -152,7 +152,7 @@ function theme_page($title, $content) {
 			<body>';
 	if (file_exists("common/admob.php"))
 	{
-		echo '<div class=\"advert\">';
+		echo '<div class="advert">';
 		require_once("common/admob.php");
 		echo '</div>';
 	}

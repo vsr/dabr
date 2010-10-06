@@ -2,6 +2,15 @@
 
 require 'desktop.php';
 
+function touch_theme_action_icon($url, $image_url, $text) {
+	$image_url = str_replace('.png', 'L.png', $image_url);
+	if ($text == 'MAP')	{
+		return "<a href='$url' target='_blank'><img src='$image_url' /></a>";
+	}
+	return "<a href='$url'><img src='$image_url' width='12' height='12' /></a>";
+}
+
+
 function touch_theme_status_form($text = '', $in_reply_to_id = NULL) {
 	return desktop_theme_status_form($text, $in_reply_to_id);
 }
@@ -31,7 +40,7 @@ function touch_theme_page($title, $content) {
 
         if (file_exists("common/admob.php"))
         {
-		                echo '<div class=\"advert\">';
+		                echo '<div class="advert">';
                 		require_once("common/admob.php");
 		                echo '</div>';
         }
@@ -67,14 +76,14 @@ function touch_theme_menu_bottom() {
 
 function touch_theme_status_time_link($status, $is_link = true) {
 	$out = theme_status_time_link($status, $is_link);
-	$out = str_replace(array(' ago', ' years', ' days', ' hours', ' min', ' sec'),
-	array('', 'y', 'd', 'h', 'm', 's'), $out);
+	//old method didn't work with conversation view (and no longer with correct pluralisation)
+	$out = str_replace(array(' years ago', ' year ago', ' days ago', ' day ago', ' hours ago', ' hour ago', ' mins ago', ' min ago', ' secs ago', ' sec ago'),
+	                   array('y', 'y', 'd', 'd', 'h', 'h', 'm', 'm', 's', 's'), $out);
 	return $out;
 }
 
 
 function touch_theme_css() {
-	//~ $out .= '<style type="text/css">body { word-wrap: break-word; text-overflow: ellipsis; } table {width: 320px;}</style>';
 	$out = theme_css();
 	$out .= '<link rel="stylesheet" href="browsers/touch.css" />';
 	$out .= '<script type="text/javascript">'.file_get_contents('browsers/touch.js').'</script>';

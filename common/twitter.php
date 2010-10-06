@@ -759,16 +759,16 @@ function get_thumbnail($service, $id)
 
 function format_interval($timestamp, $granularity = 2) {
 	$units = array(
-	'years' => 31536000,
-	'days' => 86400,
-	'hours' => 3600,
-	'min' => 60,
-	'sec' => 1
+	'year' => 31536000,
+	'day'  => 86400,
+	'hour' => 3600,
+	'min'  => 60,
+	'sec'  => 1
 	);
 	$output = '';
 	foreach ($units as $key => $value) {
 		if ($timestamp >= $value) {
-			$output .= ($output ? ' ' : '').floor($timestamp / $value).' '.$key;
+			$output .= ($output ? ' ' : ''). pluralise($key, floor($timestamp / $value), true);
 			$timestamp %= $value;
 			$granularity--;
 		}
