@@ -566,6 +566,8 @@ function twitter_photo_replace($text) {
 	'#brizzly\.com\/pic\/([\w]+)#i'           => 'http://pics.brizzly.com/thumb_sm_%s.jpg',
 	'#img\.ly\/([\w\d]+)#i'                   => 'http://img.ly/show/thumb/%s',
 	'#picplz\.com\/([\d\w\.]+)#'              => 'http://picplz.com/%s/thumb',
+	'#pk\.gd\/([\d\w]+)#i'                    => 'http://img.pikchur.com/pic_%s_s.jpg',
+	'#pikchur\.com\/([\d\w]+)#i'              => 'http://img.pikchur.com/pic_%s_s.jpg',
 	);
 
 	// Loop through each service and show images for matching URLs
@@ -574,6 +576,17 @@ function twitter_photo_replace($text) {
 			foreach ($matches[1] as $key => $match) {
 				$images[] = theme('external_link', 'http://'.$matches[0][$key], '<img src="'.sprintf($thumbnail_url, $match).'" />');
 			}
+		}
+	}
+
+	//pikchur videos are handled differently to link to the mobile friendly video
+	//http://groups.google.com/group/pikchur-api/web/simple-api-documentation
+	if (preg_match_all('#mp\.gd/([\w\d]+)#', $tmp, $matches, PREG_PATTERN_ORDER) > 0)
+	{
+		foreach ($matches[1] as $key => $match)
+		{
+			$thumb = "http://vid.pikchur.com/vid_{$match}_s.jpg";
+			$images[] = theme('external_link', "http://vid.pikchur.com/vid_{$match}.mp4", "<img src='$thumb' />");
 		}
 	}
 
