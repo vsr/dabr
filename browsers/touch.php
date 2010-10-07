@@ -4,6 +4,7 @@ require 'desktop.php';
 
 function touch_theme_action_icon($url, $image_url, $text) {
 	$image_url = str_replace('.png', 'L.png', $image_url);
+	$image_url = str_replace('.gif', 'L.png', $image_url);
 	if ($text == 'MAP')	{
 		return "<a href='$url' target='_blank'><img src='$image_url' /></a>";
 	}

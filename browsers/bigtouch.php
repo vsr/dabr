@@ -4,6 +4,7 @@ require 'touch.php';
 
 function bigtouch_theme_action_icon($url, $image_url, $text) {
 	$image_url = str_replace('.png', 'L.png', $image_url);
+	$image_url = str_replace('.gif', 'L.png', $image_url);
 	if ($text == 'MAP')	{
 		return "<a href='$url' target='_blank'><img src='$image_url' /></a>";
 	}
@@ -34,7 +35,7 @@ function bigtouch_theme_menu_bottom() {
 }
 
 function bigtouch_theme_status_time_link($status, $is_link = true) {
-	return touch_theme_status_time_link();
+	return touch_theme_status_time_link($status, $is_link);
 }
 
 function bigtouch_theme_css() {
