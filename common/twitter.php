@@ -568,6 +568,7 @@ function twitter_photo_replace($text) {
 	'#picplz\.com\/([\d\w\.]+)#'              => 'http://picplz.com/%s/thumb',
 	'#pk\.gd\/([\d\w]+)#i'                    => 'http://img.pikchur.com/pic_%s_s.jpg',
 	'#pikchur\.com\/([\d\w]+)#i'              => 'http://img.pikchur.com/pic_%s_s.jpg',
+	'#znl\.me\/([\d\w]+)#'                    => 'http://www.zannel.com/webservices/content/%s/Image-164x123-JPG.jpg',
 	);
 
 	// Loop through each service and show images for matching URLs
