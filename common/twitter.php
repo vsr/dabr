@@ -1400,6 +1400,20 @@ function twitter_date($format, $timestamp = null) {
 function twitter_standard_timeline($feed, $source) {
 	$output = array();
 	if (!is_array($feed) && $source != 'thread') return $output;
+	
+	//32bit int / snowflake patch
+	foreach($feed as $key => $status) {
+		if($status->id_str) {
+			$feed[$key]->id = $status->id_str;
+		}
+		if($status->in_reply_to_status_id_str) {
+			$feed[$key]->in_reply_to_status_id = $status->in_reply_to_status_id_str;
+		}
+		if($status->retweeted_status->id_str) {
+			$feed[$key]->retweeted_status->id = $status->retweeted_status->id_str;
+		}
+	}
+	
 	switch ($source) {
 		case 'favourites':
 		case 'friends':
@@ -1602,7 +1616,8 @@ function theme_timeline($feed)
 		//Doesn't work. since_id returns the most recent tweets up to since_id, not since. Grrr
 		//$links[] = "<a href='{$_GET['q']}?since_id=$since_id'>Newer</a>";
 
-		$max_id = (float)$max_id - 1; //stops last tweet appearing as first tweet on next page
+		//max_id - 1 fails on 32 bit php installs, so removed. uncomment line below if you want it back
+		//$max_id = (float)$max_id - 1; //stops last tweet appearing as first tweet on next page
 		$links[] = "<a href='{$_GET['q']}?max_id=$max_id' accesskey='9'>Older</a> 9";
 		$content .= '<p>'.implode(' | ', $links).'</p>';
 	}
