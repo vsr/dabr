@@ -776,7 +776,7 @@ function get_thumbnail($service, $id)
 
 		$vimeoXML = twitter_fetch($vimeoURL);
 
-		$vimeoData = simplexml_load_string($vimeoXML);
+		@$vimeoData = simplexml_load_string($vimeoXML);
 
 		$thumb = $vimeoData->video->thumbnail_medium; 
 
