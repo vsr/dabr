@@ -663,6 +663,17 @@ function twitter_photo_replace($text) {
 		}
 	}
 
+	//vimeo
+	if (preg_match_all('#vimeo.com/([\d]+)#', $tmp, $matches, PREG_PATTERN_ORDER) > 0 )
+	{
+		foreach ($matches[1] as $key => $match)
+		{
+			$thumb = get_thumbnail("vimeo", $match);
+			$images[] = theme('external_link', "http://{$matches[0][$key]}", "<img src='$thumb' width='200' height='150'/>");
+		}
+	}
+
+
 	if (empty($images)) return $text;
 	return implode('<br />', $images).'<br />'.$text;
 }
@@ -753,6 +764,21 @@ function get_thumbnail($service, $id)
 		$slideshareData = simplexml_load_string($slideshareXML);
 		
 		$thumb = $slideshareData->ThumbnailURL;
+
+		return $thumb;
+	}
+	else if ($service == "vimeo")
+	{
+		//http://www.vimeo.com/api/docs/simple-api#video
+		$vimeoURL = "http://vimeo.com/api/v2/video/"
+				. $id
+				. ".xml";
+
+		$vimeoXML = twitter_fetch($vimeoURL);
+
+		$vimeoData = simplexml_load_string($vimeoXML);
+
+		$thumb = $vimeoData->video->thumbnail_medium; 
 
 		return $thumb;
 	}
