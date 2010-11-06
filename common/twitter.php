@@ -886,9 +886,9 @@ function twitter_block_page($query) {
 	$user = $query[1];
 	if ($user) {
 		if($query[0] == 'block'){
-			$request = API_URL."blocks/create/{$user}.json";
+			$request = API_URL."blocks/create/create.json?screen_name={$user}";
 		} else {
-			$request = API_URL."blocks/destroy/{$user}.json";
+			$request = API_URL."blocks/destroy/destroy.json?screen_name={$user}";
 		}
 		twitter_process($request, true);
 		twitter_refresh("user/{$user}");
