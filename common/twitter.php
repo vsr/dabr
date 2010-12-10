@@ -1257,7 +1257,7 @@ function theme_status($status) {
 	$out .= " </div>\n";
 	$out .= "</div>\n";
 	if (user_is_current_user($status->user->screen_name)) {
-		$out .= "<form action='delete/{$status->id}' method='post'><input type='submit' value='Delete without confirmation' /></form>";
+		$out .= "<form action='delete/{$status->id_str}' method='post'><input type='submit' value='Delete without confirmation' /></form>";
 	}
 	return $out;
 }
@@ -1271,7 +1271,7 @@ function theme_retweet($status)
 	if($status->user->protected == 0)
 	{
 		$content.="<p>Twitter's new style retweet:</p>
-					<form action='twitter-retweet/{$status->id}' method='post'>
+					<form action='twitter-retweet/{$status->id_str}' method='post'>
 						<input type='hidden' name='from' value='$from' />
 						<input type='submit' value='Twitter Retweet' />
 					</form>
