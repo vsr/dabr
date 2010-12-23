@@ -498,7 +498,7 @@ function twitter_parse_tags($input)
 	if (!in_array(setting_fetch('browser'), array('text', 'worksafe')))
 	{
 		//Add in images
-		$out = twitter_photo_replace($out);
+		$out = twitter_embed_thumbnails($out);
 	}
 
 	//Linebreaks.  Some clients insert \n for formatting.
@@ -535,253 +535,47 @@ function flickr_encode($num) {
 	return $encoded;
 }
 
-function twitter_photo_replace($text) {
+function twitter_embed_thumbnails($text) 
+{
 	if (setting_fetch('hide_inline')) {
 		return $text;
 	}
 	$images = array();
 	$tmp = strip_tags($text);
+	
+	//Using oEmbed from http://api.embed.ly/
+	$embedly_re = "/http:\/\/(.*youtube\.com\/watch.*|.*\.youtube\.com\/v\/.*|youtu\.be\/.*|.*\.youtube\.com\/user\/.*|.*\.youtube\.com\/.*#.*\/.*|m\.youtube\.com\/watch.*|m\.youtube\.com\/index.*|.*\.youtube\.com\/profile.*|.*justin\.tv\/.*|.*justin\.tv\/.*\/b\/.*|.*justin\.tv\/.*\/w\/.*|www\.ustream\.tv\/recorded\/.*|www\.ustream\.tv\/channel\/.*|www\.ustream\.tv\/.*|qik\.com\/video\/.*|qik\.com\/.*|qik\.ly\/.*|.*revision3\.com\/.*|.*\.dailymotion\.com\/video\/.*|.*\.dailymotion\.com\/.*\/video\/.*|www\.collegehumor\.com\/video:.*|.*twitvid\.com\/.*|www\.break\.com\/.*\/.*|vids\.myspace\.com\/index\.cfm\?fuseaction=vids\.individual&videoid.*|www\.myspace\.com\/index\.cfm\?fuseaction=.*&videoid.*|www\.metacafe\.com\/watch\/.*|www\.metacafe\.com\/w\/.*|blip\.tv\/file\/.*|.*\.blip\.tv\/file\/.*|video\.google\.com\/videoplay\?.*|.*revver\.com\/video\/.*|video\.yahoo\.com\/watch\/.*\/.*|video\.yahoo\.com\/network\/.*|.*viddler\.com\/explore\/.*\/videos\/.*|liveleak\.com\/view\?.*|www\.liveleak\.com\/view\?.*|animoto\.com\/play\/.*|dotsub\.com\/view\/.*|www\.overstream\.net\/view\.php\?oid=.*|www\.livestream\.com\/.*|www\.worldstarhiphop\.com\/videos\/video.*\.php\?v=.*|worldstarhiphop\.com\/videos\/video.*\.php\?v=.*|teachertube\.com\/viewVideo\.php.*|www\.teachertube\.com\/viewVideo\.php.*|www1\.teachertube\.com\/viewVideo\.php.*|www2\.teachertube\.com\/viewVideo\.php.*|bambuser\.com\/v\/.*|bambuser\.com\/channel\/.*|bambuser\.com\/channel\/.*\/broadcast\/.*|www\.schooltube\.com\/video\/.*\/.*|bigthink\.com\/ideas\/.*|bigthink\.com\/series\/.*|sendables\.jibjab\.com\/view\/.*|sendables\.jibjab\.com\/originals\/.*|www\.xtranormal\.com\/watch\/.*|dipdive\.com\/media\/.*|dipdive\.com\/member\/.*\/media\/.*|dipdive\.com\/v\/.*|.*\.dipdive\.com\/media\/.*|.*\.dipdive\.com\/v\/.*|.*yfrog\..*\/.*|tweetphoto\.com\/.*|www\.flickr\.com\/photos\/.*|flic\.kr\/.*|twitpic\.com\/.*|www\.twitpic\.com\/.*|twitpic\.com\/photos\/.*|www\.twitpic\.com\/photos\/.*|.*imgur\.com\/.*|.*\.posterous\.com\/.*|post\.ly\/.*|twitgoo\.com\/.*|i.*\.photobucket\.com\/albums\/.*|s.*\.photobucket\.com\/albums\/.*|phodroid\.com\/.*\/.*\/.*|www\.mobypicture\.com\/user\/.*\/view\/.*|moby\.to\/.*|xkcd\.com\/.*|www\.xkcd\.com\/.*|imgs\.xkcd\.com\/.*|www\.asofterworld\.com\/index\.php\?id=.*|www\.asofterworld\.com\/.*\.jpg|asofterworld\.com\/.*\.jpg|www\.qwantz\.com\/index\.php\?comic=.*|23hq\.com\/.*\/photo\/.*|www\.23hq\.com\/.*\/photo\/.*|.*dribbble\.com\/shots\/.*|drbl\.in\/.*|.*\.smugmug\.com\/.*|.*\.smugmug\.com\/.*#.*|emberapp\.com\/.*\/images\/.*|emberapp\.com\/.*\/images\/.*\/sizes\/.*|emberapp\.com\/.*\/collections\/.*\/.*|emberapp\.com\/.*\/categories\/.*\/.*\/.*|embr\.it\/.*|picasaweb\.google\.com.*\/.*\/.*#.*|picasaweb\.google\.com.*\/lh\/photo\/.*|picasaweb\.google\.com.*\/.*\/.*|dailybooth\.com\/.*\/.*|brizzly\.com\/pic\/.*|pics\.brizzly\.com\/.*\.jpg|img\.ly\/.*|www\.tinypic\.com\/view\.php.*|tinypic\.com\/view\.php.*|www\.tinypic\.com\/player\.php.*|tinypic\.com\/player\.php.*|www\.tinypic\.com\/r\/.*\/.*|tinypic\.com\/r\/.*\/.*|.*\.tinypic\.com\/.*\.jpg|.*\.tinypic\.com\/.*\.png|meadd\.com\/.*\/.*|meadd\.com\/.*|.*\.deviantart\.com\/art\/.*|.*\.deviantart\.com\/gallery\/.*|.*\.deviantart\.com\/#\/.*|fav\.me\/.*|.*\.deviantart\.com|.*\.deviantart\.com\/gallery|.*\.deviantart\.com\/.*\/.*\.jpg|.*\.deviantart\.com\/.*\/.*\.gif|.*\.deviantart\.net\/.*\/.*\.jpg|.*\.deviantart\.net\/.*\/.*\.gif|plixi\.com\/p\/.*|plixi\.com\/profile\/home\/.*|plixi\.com\/.*|www\.fotopedia\.com\/.*\/.*|fotopedia\.com\/.*\/.*|photozou\.jp\/photo\/show\/.*\/.*|photozou\.jp\/photo\/photo_only\/.*\/.*|instagr\.am\/p\/.*|skitch\.com\/.*\/.*\/.*|img\.skitch\.com\/.*|https:\/\/skitch\.com\/.*\/.*\/.*|https:\/\/img\.skitch\.com\/.*|share\.ovi\.com\/media\/.*\/.*|www\.questionablecontent\.net\/|questionablecontent\.net\/|www\.questionablecontent\.net\/view\.php.*|questionablecontent\.net\/view\.php.*|questionablecontent\.net\/comics\/.*\.png|www\.questionablecontent\.net\/comics\/.*\.png|picplz\.com\/user\/.*\/pic\/.*\/|twitrpix\.com\/.*|.*\.twitrpix\.com\/.*|www\.someecards\.com\/.*\/.*|someecards\.com\/.*\/.*|some\.ly\/.*|www\.some\.ly\/.*|pikchur\.com\/.*|achewood\.com\/.*|www\.achewood\.com\/.*|achewood\.com\/index\.php.*|www\.achewood\.com\/index\.php.*|www\.whitehouse\.gov\/photos-and-video\/video\/.*|www\.whitehouse\.gov\/video\/.*|wh\.gov\/photos-and-video\/video\/.*|wh\.gov\/video\/.*|www\.hulu\.com\/watch.*|www\.hulu\.com\/w\/.*|hulu\.com\/watch.*|hulu\.com\/w\/.*|.*crackle\.com\/c\/.*|www\.fancast\.com\/.*\/videos|www\.funnyordie\.com\/videos\/.*|www\.funnyordie\.com\/m\/.*|funnyordie\.com\/videos\/.*|funnyordie\.com\/m\/.*|www\.vimeo\.com\/groups\/.*\/videos\/.*|www\.vimeo\.com\/.*|vimeo\.com\/m\/#\/featured\/.*|vimeo\.com\/groups\/.*\/videos\/.*|vimeo\.com\/.*|vimeo\.com\/m\/#\/featured\/.*|www\.ted\.com\/talks\/.*\.html.*|www\.ted\.com\/talks\/lang\/.*\/.*\.html.*|www\.ted\.com\/index\.php\/talks\/.*\.html.*|www\.ted\.com\/index\.php\/talks\/lang\/.*\/.*\.html.*|.*nfb\.ca\/film\/.*|www\.thedailyshow\.com\/watch\/.*|www\.thedailyshow\.com\/full-episodes\/.*|www\.thedailyshow\.com\/collection\/.*\/.*\/.*|movies\.yahoo\.com\/movie\/.*\/video\/.*|movies\.yahoo\.com\/movie\/.*\/trailer|movies\.yahoo\.com\/movie\/.*\/video|www\.colbertnation\.com\/the-colbert-report-collections\/.*|www\.colbertnation\.com\/full-episodes\/.*|www\.colbertnation\.com\/the-colbert-report-videos\/.*|www\.comedycentral\.com\/videos\/index\.jhtml\?.*|www\.theonion\.com\/video\/.*|theonion\.com\/video\/.*|wordpress\.tv\/.*\/.*\/.*\/.*\/|www\.traileraddict\.com\/trailer\/.*|www\.traileraddict\.com\/clip\/.*|www\.traileraddict\.com\/poster\/.*|www\.escapistmagazine\.com\/videos\/.*|www\.trailerspy\.com\/trailer\/.*\/.*|www\.trailerspy\.com\/trailer\/.*|www\.trailerspy\.com\/view_video\.php.*|www\.atom\.com\/.*\/.*\/|fora\.tv\/.*\/.*\/.*\/.*|www\.spike\.com\/video\/.*|www\.gametrailers\.com\/video\/.*|gametrailers\.com\/video\/.*|www\.koldcast\.tv\/video\/.*|www\.koldcast\.tv\/#video:.*|techcrunch\.tv\/watch.*|techcrunch\.tv\/.*\/watch.*|mixergy\.com\/.*|video\.pbs\.org\/video\/.*|www\.zapiks\.com\/.*|tv\.digg\.com\/diggnation\/.*|tv\.digg\.com\/diggreel\/.*|tv\.digg\.com\/diggdialogg\/.*|www\.trutv\.com\/video\/.*|www\.nzonscreen\.com\/title\/.*|nzonscreen\.com\/title\/.*|app\.wistia\.com\/embed\/medias\/.*|https:\/\/app\.wistia\.com\/embed\/medias\/.*|www\.godtube\.com\/featured\/video\/.*|godtube\.com\/featured\/video\/.*|www\.godtube\.com\/watch\/.*|godtube\.com\/watch\/.*|www\.tangle\.com\/view_video.*|mediamatters\.org\/mmtv\/.*|www\.clikthrough\.com\/theater\/video\/.*|soundcloud\.com\/.*|soundcloud\.com\/.*\/.*|soundcloud\.com\/.*\/sets\/.*|soundcloud\.com\/groups\/.*|snd\.sc\/.*|www\.last\.fm\/music\/.*|www\.last\.fm\/music\/+videos\/.*|www\.last\.fm\/music\/+images\/.*|www\.last\.fm\/music\/.*\/_\/.*|www\.last\.fm\/music\/.*\/.*|www\.mixcloud\.com\/.*\/.*\/|www\.radionomy\.com\/.*\/radio\/.*|radionomy\.com\/.*\/radio\/.*|www\.entertonement\.com\/clips\/.*|www\.rdio\.com\/#\/artist\/.*\/album\/.*|www\.rdio\.com\/artist\/.*\/album\/.*|www\.zero-inch\.com\/.*|.*\.bandcamp\.com\/|.*\.bandcamp\.com\/track\/.*|.*\.bandcamp\.com\/album\/.*|freemusicarchive\.org\/music\/.*|www\.freemusicarchive\.org\/music\/.*|freemusicarchive\.org\/curator\/.*|www\.freemusicarchive\.org\/curator\/.*|www\.npr\.org\/.*\/.*\/.*\/.*\/.*|www\.npr\.org\/.*\/.*\/.*\/.*\/.*\/.*|www\.npr\.org\/.*\/.*\/.*\/.*\/.*\/.*\/.*|www\.npr\.org\/templates\/story\/story\.php.*|huffduffer\.com\/.*\/.*|www\.audioboo\.fm\/boos\/.*|audioboo\.fm\/boos\/.*|boo\.fm\/b.*|www\.xiami\.com\/song\/.*|xiami\.com\/song\/.*|espn\.go\.com\/video\/clip.*|espn\.go\.com\/.*\/story.*|abcnews\.com\/.*\/video\/.*|abcnews\.com\/video\/playerIndex.*|washingtonpost\.com\/wp-dyn\/.*\/video\/.*\/.*\/.*\/.*|www\.washingtonpost\.com\/wp-dyn\/.*\/video\/.*\/.*\/.*\/.*|www\.boston\.com\/video.*|boston\.com\/video.*|www\.facebook\.com\/photo\.php.*|www\.facebook\.com\/video\/video\.php.*|www\.facebook\.com\/v\/.*|cnbc\.com\/id\/.*\?.*video.*|www\.cnbc\.com\/id\/.*\?.*video.*|cnbc\.com\/id\/.*\/play\/1\/video\/.*|www\.cnbc\.com\/id\/.*\/play\/1\/video\/.*|cbsnews\.com\/video\/watch\/.*|www\.google\.com\/buzz\/.*\/.*\/.*|www\.google\.com\/buzz\/.*|www\.google\.com\/profiles\/.*|google\.com\/buzz\/.*\/.*\/.*|google\.com\/buzz\/.*|google\.com\/profiles\/.*|www\.cnn\.com\/video\/.*|edition\.cnn\.com\/video\/.*|money\.cnn\.com\/video\/.*|today\.msnbc\.msn\.com\/id\/.*\/vp\/.*|www\.msnbc\.msn\.com\/id\/.*\/vp\/.*|www\.msnbc\.msn\.com\/id\/.*\/ns\/.*|today\.msnbc\.msn\.com\/id\/.*\/ns\/.*|multimedia\.foxsports\.com\/m\/video\/.*\/.*|msn\.foxsports\.com\/video.*|www\.globalpost\.com\/video\/.*|www\.globalpost\.com\/dispatch\/.*|.*amazon\..*\/gp\/product\/.*|.*amazon\..*\/.*\/dp\/.*|.*amazon\..*\/dp\/.*|.*amazon\..*\/o\/ASIN\/.*|.*amazon\..*\/gp\/offer-listing\/.*|.*amazon\..*\/.*\/ASIN\/.*|.*amazon\..*\/gp\/product\/images\/.*|www\.amzn\.com\/.*|amzn\.com\/.*|www\.shopstyle\.com\/browse.*|www\.shopstyle\.com\/action\/apiVisitRetailer.*|www\.shopstyle\.com\/action\/viewLook.*|gist\.github\.com\/.*|twitter\.com\/.*\/status\/.*|twitter\.com\/.*\/statuses\/.*|mobile\.twitter\.com\/.*\/status\/.*|mobile\.twitter\.com\/.*\/statuses\/.*|www\.crunchbase\.com\/.*\/.*|crunchbase\.com\/.*\/.*|www\.slideshare\.net\/.*\/.*|www\.slideshare\.net\/mobile\/.*\/.*|.*\.scribd\.com\/doc\/.*|screenr\.com\/.*|polldaddy\.com\/community\/poll\/.*|polldaddy\.com\/poll\/.*|answers\.polldaddy\.com\/poll\/.*|www\.5min\.com\/Video\/.*|www\.howcast\.com\/videos\/.*|www\.screencast\.com\/.*\/media\/.*|screencast\.com\/.*\/media\/.*|www\.screencast\.com\/t\/.*|screencast\.com\/t\/.*|issuu\.com\/.*\/docs\/.*|www\.kickstarter\.com\/projects\/.*\/.*|www\.scrapblog\.com\/viewer\/viewer\.aspx.*|ping\.fm\/p\/.*|chart\.ly\/.*|maps\.google\.com\/maps\?.*|maps\.google\.com\/\?.*|maps\.google\.com\/maps\/ms\?.*|.*\.craigslist\.org\/.*\/.*|my\.opera\.com\/.*\/albums\/show\.dml\?id=.*|my\.opera\.com\/.*\/albums\/showpic\.dml\?album=.*&picture=.*|tumblr\.com\/.*|.*\.tumblr\.com\/post\/.*|www\.polleverywhere\.com\/polls\/.*|www\.polleverywhere\.com\/multiple_choice_polls\/.*|www\.polleverywhere\.com\/free_text_polls\/.*|www\.quantcast\.com\/wd:.*|www\.quantcast\.com\/.*|siteanalytics\.compete\.com\/.*|statsheet\.com\/statplot\/charts\/.*\/.*\/.*\/.*|statsheet\.com\/statplot\/charts\/e\/.*|statsheet\.com\/.*\/teams\/.*\/.*|statsheet\.com\/tools\/chartlets\?chart=.*|.*\.status\.net\/notice\/.*|identi\.ca\/notice\/.*|brainbird\.net\/notice\/.*|shitmydadsays\.com\/notice\/.*|www\.studivz\.net\/Profile\/.*|www\.studivz\.net\/l\/.*|www\.studivz\.net\/Groups\/Overview\/.*|www\.studivz\.net\/Gadgets\/Info\/.*|www\.studivz\.net\/Gadgets\/Install\/.*|www\.studivz\.net\/.*|www\.meinvz\.net\/Profile\/.*|www\.meinvz\.net\/l\/.*|www\.meinvz\.net\/Groups\/Overview\/.*|www\.meinvz\.net\/Gadgets\/Info\/.*|www\.meinvz\.net\/Gadgets\/Install\/.*|www\.meinvz\.net\/.*|www\.schuelervz\.net\/Profile\/.*|www\.schuelervz\.net\/l\/.*|www\.schuelervz\.net\/Groups\/Overview\/.*|www\.schuelervz\.net\/Gadgets\/Info\/.*|www\.schuelervz\.net\/Gadgets\/Install\/.*|www\.schuelervz\.net\/.*|myloc\.me\/.*|pastebin\.com\/.*|pastie\.org\/.*|www\.pastie\.org\/.*|redux\.com\/stream\/item\/.*\/.*|redux\.com\/f\/.*\/.*|www\.redux\.com\/stream\/item\/.*\/.*|www\.redux\.com\/f\/.*\/.*|cl\.ly\/.*|cl\.ly\/.*\/content|speakerdeck\.com\/u\/.*\/p\/.*|www\.kiva\.org\/lend\/.*|www\.timetoast\.com\/timelines\/.*|storify\.com\/.*\/.*|.*meetup\.com\/.*|meetu\.ps\/.*|www\.dailymile\.com\/people\/.*\/entries\/.*|.*\.kinomap\.com\/.*|www\.metacdn\.com\/api\/users\/.*\/content\/.*|www\.metacdn\.com\/api\/users\/.*\/media\/.*|prezi\.com\/.*\/.*|.*\.uservoice\.com\/.*\/suggestions\/.*)/i";
 
-	// List of supported services. Array format: pattern => thumbnail url
-	$services = array(
-	'#youtube\.com\/watch\?v=([_-\d\w]+)#i'   => 'http://i.ytimg.com/vi/%s/1.jpg',
-	'#youtu\.be\/([_-\d\w]+)#i'               => 'http://i.ytimg.com/vi/%s/1.jpg',
-	'#qik\.ly\/([_-\d\w]+)#i'                 => 'http://qik.ly/%s.jpg',
-	'#twitpic\.com\/([\d\w]+)#i'              => 'http://twitpic.com/show/thumb/%s',
-	'#twitgoo\.com\/([\d\w]+)#i'              => 'http://twitgoo.com/show/thumb/%s',
-	'#yfrog\.com\/([\w\d]+)#i'                => 'http://yfrog.com/%s.th.jpg',
-	'#yfrog\.us\/([\w\d]+)#i'                 => 'http://yfrog.com/%s.th.jpg',
-	'#hellotxt\.com\/i\/([\d\w]+)#i'          => 'http://hellotxt.com/image/%s.s.jpg',
-	'#ts1\.in\/(\d+)#i'                       => 'http://ts1.in/mini/%s',
-	'#moby\.to\/\?([\w\d]+)#i'                => 'http://moby.to/%s:square',
-	'#mobypicture\.com\/\?([\w\d]+)#i'        => 'http://mobypicture.com/?%s:square',
-	'#twic\.li\/([\w\d]{2,7})#'               => 'http://twic.li/api/photo.jpg?id=%s&size=small',
-	'#tweetphoto\.com\/(\d+)#'                => 'http://api.plixi.com/api/tpapi.svc/imagefromurl?url=http://tweetphoto.com/%s',
-	'#plixi\.com\/p\/(\d+)#'                  => 'http://api.plixi.com/api/tpapi.svc/imagefromurl?url=http://plixi.com/p/%s&size=small',
-//	'#pic\.gd\/([\w\d]+)#'                    => 'http://api.plixi.com/api/tpapi.svc/imagefromurl?url=http://www.pic.gd/%s',
-	'#phz\.in\/([\d\w]+)#'                    => 'http://i.tinysrc.mobi/x50/http://api.phreadz.com/thumb/%s?t=code',
-	'#twitvid\.com\/([\w]+)#i'                => 'http://i.tinysrc.mobi/x50/http://images.twitvid.com/%s.jpg',
-	'#imgur\.com\/([\w]{5})[\s\.ls][\.\w]*#i' => 'http://imgur.com/%ss.png',
-	'#imgur\.com\/gallery\/([\w]+)#i'         => 'http://imgur.com/%ss.png',
-	'#brizzly\.com\/pic\/([\w]+)#i'           => 'http://pics.brizzly.com/thumb_sm_%s.jpg',
-	'#img\.ly\/([\w\d]+)#i'                   => 'http://img.ly/show/thumb/%s',
-	'#picplz\.com\/([\d\w\.]+)#'              => 'http://picplz.com/%s/thumb',
-	'#pk\.gd\/([\d\w]+)#i'                    => 'http://img.pikchur.com/pic_%s_s.jpg',
-	'#pikchur\.com\/([\d\w]+)#i'              => 'http://img.pikchur.com/pic_%s_s.jpg',
-	'#znl\.me\/([\d\w]+)#'                    => 'http://www.zannel.com/webservices/content/%s/Image-164x123-JPG.jpg',
-	);
-
-	// Loop through each service and show images for matching URLs
-	foreach ($services as $pattern => $thumbnail_url) {
-		if (preg_match_all($pattern, $tmp, $matches, PREG_PATTERN_ORDER) > 0) {
-			foreach ($matches[1] as $key => $match) {
-				$images[] = theme('external_link', 'http://'.$matches[0][$key], '<img src="'.sprintf($thumbnail_url, $match).'" />');
-			}
-		}
-	}
-
-	//pikchur videos are handled differently to link to the mobile friendly video
-	//http://groups.google.com/group/pikchur-api/web/simple-api-documentation
-	if (preg_match_all('#mp\.gd/([\w\d]+)#', $tmp, $matches, PREG_PATTERN_ORDER) > 0)
+	//Tokenise the string (on whitespace) and search through it
+	$tok = strtok($tmp, " \n\t");
+	while ($tok !== false) 
 	{
-		foreach ($matches[1] as $key => $match)
-		{
-			$thumb = "http://vid.pikchur.com/vid_{$match}_s.jpg";
-			$images[] = theme('external_link', "http://vid.pikchur.com/vid_{$match}.mp4", "<img src='$thumb' />");
-		}
-	}
-
-	//Flickr is handled differently because API calls need to be made
-	if (defined('FLICKR_API_KEY') && (preg_match_all('#flic.kr/p/([\w\d]+)#', $tmp, $matches, PREG_PATTERN_ORDER) > 0 ||
-	preg_match_all('#flickr.com/[^ ]+/([\d]+)#', $tmp, $matches, PREG_PATTERN_ORDER) > 0) )
-	{
-		foreach ($matches[1] as $key => $match)
-		{
-			$thumb = get_thumbnail("flickr", $match);
-			$images[] = theme('external_link', "http://{$matches[0][$key]}", "<img src='$thumb' />");
-		}
-	}
-
-	//Posterous / post.ly is handled differently because API calls need to be made
-	if (preg_match_all('#post.ly/([\w\d]+)#', $tmp, $matches, PREG_PATTERN_ORDER) > 0)
-	{
-		foreach ($matches[1] as $key => $match)
-		{
-			$thumb = get_thumbnail("post.ly", $match);
-				
-			if ($thumb) //not all posts have thumbnails
-			{
-				if (substr($thumb, -4) == ".mp3")
-				{
-					$images[] = theme('external_link', $thumb, "[Listen to MP3]");
-				}
-				else
-				{
-					$images[] = theme('external_link', "http://{$matches[0][$key]}", "<img src='$thumb' />");
-				}
-			}
-		}
-	}
-
-	//Moblog is handled differently because of non-standard structure
-	if (preg_match_all('#moblog.net/view/([\d]+)/#', $tmp, $matches, PREG_PATTERN_ORDER) > 0 )
-	{
-		foreach ($matches[1] as $key => $match)
-		{
-			$thumb = get_thumbnail("moblog", $match);
-			$images[] = theme('external_link', "http://{$matches[0][$key]}", "<img src='$thumb' />");
-		}
-	}
-
-	// Twitxr is handled differently because of their folder structure
-	if (preg_match_all('#twitxr.com/[^ ]+/updates/([\d]+)#', $tmp, $matches, PREG_PATTERN_ORDER) > 0) {
-		foreach ($matches[1] as $key => $match) {
-			$thumb = 'http://twitxr.com/thumbnails/'.substr($match, -2).'/'.$match.'_th.jpg';
-			$images[] = theme('external_link', "http://{$matches[0][$key]}", "<img src='$thumb' />");
-		}
-	}
-
-	// AudioBoo is handled differently because we link directly to an MP3, not an image
-	if (preg_match_all('#boo.fm/b([\d]+)#', $tmp, $matches, PREG_PATTERN_ORDER) > 0)
-	{
-		foreach ($matches[1] as $key => $match)
-		{
-			$images[] = theme('external_link', "http://{$matches[0][$key]}.mp3", "[Listen to MP3]");
-		}
-	}
-
-	//SlideShare
-	if ((SLIDESHARE_API_KEY != '') && (BITLY_API_KEY != ''))
-	{
-		if(preg_match_all('#slidesha.re/([\w\d]+)#', $tmp, $matches, PREG_PATTERN_ORDER) > 0)
+		if (preg_match_all($embedly_re, $tok, $matches, PREG_PATTERN_ORDER) > 0)
 		{
 			foreach ($matches[1] as $key => $match)
 			{
-				$thumb = get_thumbnail("slidesha.re", $match);
-				$images[] = theme('external_link', "http://slidesha.re/$match)", "<img src='$thumb' />");
+				//Should use &maxwidth, but hard to know width of device - so using tinysrc to resize to 50%
+				$url = "http://api.embed.ly/1/oembed?url=" . $match . "&format=json";
+				
+				$embedly_json = twitter_fetch($url);
+				$embedly_data = json_decode($embedly_json);
+				$thumb = $embedly_data->thumbnail_url;
+				
+				//We can use the height and width for better HTML, but some thumbnails are very large. Using tinysrc for now.
+				$height = $embedly_data->thumbnail_height;
+				$width = $embedly_data->thumbnail_width;
+				
+				if ($thumb) //Not all services have thumbnails
+				{
+					$images[] = theme('external_link', "http://$match", "<img src='http://i.tinysrc.mobi/x50/$thumb' />");
+				}
 			}
 		}
+		$tok = strtok(" \n\t");
 	}
-
-	//vimeo
-	if (preg_match_all('#vimeo.com/([\d]+)#', $tmp, $matches, PREG_PATTERN_ORDER) > 0 )
-	{
-		foreach ($matches[1] as $key => $match)
-		{
-			$thumb = get_thumbnail("vimeo", $match);
-			$images[] = theme('external_link', "http://{$matches[0][$key]}", "<img src='$thumb' width='200' height='150'/>");
-		}
-	}
-
-
+	
 	if (empty($images)) return $text;
 	return implode('<br />', $images).'<br />'.$text;
-}
-
-function get_thumbnail($service, $id)
-{
-	if ($service == "moblog")
-	{
-		$url = "http://moblog.net/view/{$id}/";
-		$html = twitter_fetch($url);
-		if (preg_match('#"(/media/[a-zA-Z0-9]/[^"]+)"#', $html, $matches))
-		{
-			$thumb = 'http://moblog.net' . str_replace(array('.j', '.J'), array('_tn.j', '_tn.J'), $matches[1]);
-			$pos = strrpos($thumb, '/');
-			$thumb = substr($thumb, 0, $pos) . '/thumbs' . substr($thumb, $pos);
-			return $thumb;
-		}
-	}
-	else if ($service == "flickr")
-	{
-		if (!is_numeric($id)) $id = flickr_decode($id);
-		$url = "http://api.flickr.com/services/rest/?method=flickr.photos.getSizes&photo_id=$id&api_key=".FLICKR_API_KEY;
-		$flickr_xml = twitter_fetch($url);
-		if (setting_fetch('browser') == 'mobile')
-		{
-			$pattern = '#"(http://.*_t\.jpg)"#';
-		}
-		else
-		{
-			$pattern = '#"(http://.*_m\.jpg)"#';
-		}
-		preg_match($pattern, $flickr_xml, $matches);
-		return $matches[1];
-	}
-	else if ($service == "post.ly")
-	{
-		//Documentation at http://posterous.com/api/postly
-		$url = "http://posterous.com/api/getpost?id=$id";
-		$postly_xml = twitter_fetch($url);
-		$postly_data = simplexml_load_string($postly_xml);
-
-		if ($postly_data->media[0]->type == "image")
-		{
-			$thumb = $postly_data->media[0]->medium->url;
-		}
-		elseif ($postly_data->media[0]->type == "video")
-		{
-			$thumb = $postly_data->media[0]->thumb;
-		}
-		elseif ($postly_data->media[0]->type == "audio")
-		{
-			$thumb = $postly_data->media[0]->url;
-			if (substr($thumb, -4) == ".mp3") //Not sure if audio can be other file types. Belt & braces.
-			{
-				return $thumb;
-			}
-		}
-
-		// We can use the thumbnail that Postereous generates - $postly_data->media[0]->thumb->url; - but it's often too small.
-		// Using tinysrc.mobi creates better sized thumbnails
-		if ($thumb)
-		{
-			return "http://i.tinysrc.mobi/x50/" . $thumb;
-		}
-		return null;
-	}
-	else if ($service == "slidesha.re")
-	{
-		$bitlyURL = "http://api.bit.ly/v3/expand?shortUrl=http%3A%2F%2Fslidesha.re%2F" 
-				. $id 
-				. "&login=" 
-				. BITLY_LOGIN 
-				. "&apiKey="
-				. BITLY_API_KEY
-				. "&format=txt";
-
-		$slideshareURL = twitter_fetch($bitlyURL);
-
-		$ts = time();
-		$hash = sha1(SLIDESHARE_SHARED_SECRET . $ts);
-
-		$slideshareXMLURL = "http://www.slideshare.net/api/2/get_slideshow?"
-			. "api_key=" . SLIDESHARE_API_KEY
-			. "&ts=" . $ts
-			. "&hash=" . $hash
-			. "&slideshow_url=" . $slideshareURL;
-		$slideshareXML = twitter_fetch($slideshareXMLURL);
-		$slideshareData = simplexml_load_string($slideshareXML);
-		
-		$thumb = $slideshareData->ThumbnailURL;
-
-		return $thumb;
-	}
-	else if ($service == "vimeo")
-	{
-		//http://www.vimeo.com/api/docs/simple-api#video
-		$vimeoURL = "http://vimeo.com/api/v2/video/"
-				. $id
-				. ".xml";
-
-		$vimeoXML = twitter_fetch($vimeoURL);
-
-		@$vimeoData = simplexml_load_string($vimeoXML);
-
-		$thumb = $vimeoData->video->thumbnail_medium; 
-
-		return $thumb;
-	}
 }
 
 function format_interval($timestamp, $granularity = 2) {
