@@ -1401,7 +1401,12 @@ function theme_timeline($feed)
 			$source .= " <a href='status/{$status->in_reply_to_status_id}'>in reply to {$status->in_reply_to_screen_name}</a>";
 		}
 		if ($status->retweet_count)	{
-			$source .= " retweeted " . pluralise('time', $status->retweet_count, true);
+			$source .= " retweeted ";
+			switch($status->retweet_count) {
+				case(1) : $source .= "once"; break;
+				case(2) : $source .= "twice"; break;
+				default : $source .= $status->retweet_count . " times";
+			}
 		}
 		if ($status->retweeted_by) {
 			$retweeted_by = $status->retweeted_by->user->screen_name;
@@ -1477,7 +1482,6 @@ function theme_followers($feed, $hide_pagination = false) {
 		$content .= "Info: ";
 		$content .= pluralise('tweet', $user->statuses_count, true) . ", ";
 		$content .= pluralise('friend', $user->friends_count, true) . ", ";
-		$content .= pluralise('follower', $user->followers_count, true) . ", ";
 		$content .= pluralise('follower', $user->followers_count, true) . ", ";
 		$content .= "~" . pluralise('tweet', $tweets_per_day, true) . " per day<br />";
 		$content .= "Last tweet: ";
