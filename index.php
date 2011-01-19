@@ -19,14 +19,11 @@ require 'common/settings.php';
 menu_register(array (
 	'about' => array (
 		'callback' => 'about_page',
-
 	),
 	'logout' => array (
 		'security' => true,
 		'callback' => 'logout_page',
-
 	),
-
 ));
 
 function logout_page() {
