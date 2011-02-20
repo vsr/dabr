@@ -119,6 +119,10 @@ menu_register(array(
 		'security' => true,
 		'callback' => 'twitter_trends_page',
 	),
+	'retweets' => array(
+		'security' => true,
+		'callback' => 'twitter_retweets_page',
+	)
 ));
 
 function long_url($shortURL)
@@ -814,6 +818,15 @@ function twitter_replies_page() {
 	theme('page', 'Replies', $content);
 }
 
+function twitter_retweets_page() {
+	$request = API_URL.'statuses/retweets_of_me.json?page='.intval($_GET['page']);
+	$tl = twitter_process($request);
+	$tl = twitter_standard_timeline($tl, 'retweets');
+	$content = theme('status_form');
+	$content .= theme('timeline',$tl);
+	theme('page', 'Retweets', $content);
+}
+
 function twitter_directs_page($query) {
 	$action = strtolower(trim($query[1]));
 	switch ($action) {
@@ -1243,6 +1256,7 @@ function twitter_standard_timeline($feed, $source) {
 		case 'favourites':
 		case 'friends':
 		case 'replies':
+		case 'retweets':
 		case 'user':
 			foreach ($feed as $status) {
 				$new = $status;
