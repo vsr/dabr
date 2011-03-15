@@ -45,8 +45,9 @@ function touch_theme_page($title, $content) {
                 		require_once("common/admob.php");
 		                echo '</div>';
         }
-        echo			$body,
-			'</body>
+        echo			$body;
+        echo admob_request($admob_params);
+        echo 		'</body>
 		</html>';
         exit();
 }
