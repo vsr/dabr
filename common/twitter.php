@@ -1184,6 +1184,7 @@ function theme_user_header($user) {
 	*/
 
 	$out .= " | <a href='confirm/spam/{$user->screen_name}/{$user->id}'>Report Spam</a>";
+	$out .= " | <a href='search?query=%40{$user->screen_name}'>Search @{$user->screen_name}</a>";
 	$out .= "</div></div>";
 	return $out;
 }
@@ -1668,6 +1669,9 @@ function theme_action_icons($status) {
 		$long = $latlong[1];
 		$actions[] = theme('action_icon', "http://maps.google.co.uk/m?q={$lat},{$long}", 'images/map.png', 'MAP');
 	}
+	
+	//Search for @ to a user
+	$actions[] = theme('action_icon',"search?query=%40{$from}",'images/q.png','?');
 
 	return implode(' ', $actions);
 }
