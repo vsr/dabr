@@ -1431,7 +1431,7 @@ function theme_timeline($feed)
 		$avatar = theme('avatar', $status->from->profile_image_url);
 		$source = $status->source ? " from ".str_replace('rel="nofollow"', 'rel="nofollow" target="_blank"', preg_replace('/&(?![a-z][a-z0-9]*;|#[0-9]+;|#x[0-9a-f]+;)/i', '&amp;', $status->source)) : ''; //need to replace & in links with &amps and force new window on links
 		if ($status->in_reply_to_status_id)	{
-			$source .= " <a href='status/{$status->in_reply_to_status_id}'>in reply to {$status->in_reply_to_screen_name}</a>";
+			$source .= " <a href='status/{$status->in_reply_to_status_id_str}'>in reply to {$status->in_reply_to_screen_name}</a>";
 		}
 		if ($status->retweet_count)	{
 			$source .= " retweeted ";
