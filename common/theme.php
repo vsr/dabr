@@ -214,4 +214,5 @@ function theme_google_analytics() {
 	$googleAnalyticsImageUrl = googleAnalyticsGetImageUrl();
 	return "<img src='{$googleAnalyticsImageUrl}' />";
 }
+
 ?>
