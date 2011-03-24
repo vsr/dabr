@@ -812,6 +812,9 @@ function twitter_replies_page() {
 	$tl = twitter_standard_timeline($tl, 'replies');
 	$content = theme('status_form');
 	$content .= theme('timeline', $tl);
+    if( !isset($_GET['page']) ){
+        $content .= auto_reload();
+    }
 	theme('page', 'Replies', $content);
 }
 
@@ -893,6 +896,9 @@ function twitter_search_page() {
 		}
 		$content .= theme('timeline', $tl);
 	}
+    if( !isset($_GET['page']) ){
+        $content .= auto_reload();
+    }
 	theme('page', 'Search', $content);
 }
 
@@ -1015,6 +1021,9 @@ function twitter_home_page() {
 	$tl = twitter_standard_timeline($tl, 'friends');
 	$content = theme('status_form');
 	$content .= theme('timeline', $tl);
+    if( !isset($_GET['since_id']) or !isset($_GET['max_id']) ){
+        $content .= auto_reload();
+    }
 	theme('page', 'Home', $content);
 }
 
@@ -1686,6 +1695,13 @@ function getHeader($ch, $header) {
       $response_headers[$key] = $value;
     }
     return strlen($header);
+}
+
+function auto_reload(){
+    $reload_interval = setting_fetch('reload_interval', 0);
+    if ( $reload_interval and is_numeric($reload_interval) ) {
+        return "<script type='text/javascript'> window.auto_reload = window.setInterval(function(){window.location.reload()}, ".($reload_interval*1000).") </script>";
+    }
 }
 
 ?>
