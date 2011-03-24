@@ -1195,7 +1195,7 @@ function twitter_home_page() {
 	$tl = twitter_standard_timeline($tl, 'friends');
 	$content = theme('status_form');
 	$content .= theme('timeline', $tl);
-    if( !isset($_GET['since_id']) or !isset($_GET['max_id']) ){
+    if( !isset($_GET['since_id']) and !isset($_GET['max_id']) ){
         $content .= auto_reload();
     }
 	theme('page', 'Home', $content);
