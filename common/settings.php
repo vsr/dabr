@@ -6,6 +6,9 @@ $GLOBALS['colour_schemes'] = array(
 	3 => 'Sickly Green|293C03,ccc,000,555,fff,eee,CCE691,ACC671,495C23,919C35,fff',
 	4 => 'Kris\' Purple|d5d,000,ddd,999,222,111,202,101,909,222,000,000',
 	5 => '#red|d12,ddd,111,555,fff,eee,ffa,dd9,c12,fff,fff',
+    6 => 'Mainframe|b50,5F5F5F,111,555,fff,eee,ffa,dd9,e81,c40,fff',
+    7 => 'Pale dale|1F150A,ECEFD1,111,555,DBD9B5,EBE7BD,FFF6DF,EFECD1,6F6A61,57524A,fff',
+    /* hyperlink,bodybg,color,a-small-color,odd,even,reply-odd,reply-even,menu-bg,menu-color,fff */
 );
 
 menu_register(array(
