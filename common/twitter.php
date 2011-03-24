@@ -382,6 +382,7 @@ function twitter_process($url, $post_data = false)
 	curl_setopt($ch, CURLOPT_HTTPHEADER, array('Expect:'));
 	curl_setopt($ch, CURLOPT_TIMEOUT, 10);
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+    curl_setopt($ch, CURLOPT_HEADERFUNCTION, "getHeader");
 	curl_setopt($ch, CURLOPT_HEADER, FALSE);
 
 	$response = curl_exec($ch);
@@ -1690,9 +1691,9 @@ function getHeader($ch, $header) {
     global $response_headers;
     $i = strpos($header, ':');
     if (!empty($i)) {
-      $key = str_replace('-', '_', strtolower(substr($header, 0, $i)));
-      $value = trim(substr($header, $i + 2));
-      $response_headers[$key] = $value;
+        $key = str_replace('-', '_', strtolower(substr($header, 0, $i)));
+        $value = trim(substr($header, $i + 2));
+        $response_headers[$key] = $value;
     }
     return strlen($header);
 }
