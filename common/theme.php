@@ -132,9 +132,10 @@ function theme_page($title, $content) {
 	$body .= theme('menu_bottom');
 	$body .= theme('google_analytics');
 	if (DEBUG_MODE == 'ON') {
-		global $dabr_start, $api_time, $services_time;
+		global $dabr_start, $api_time, $services_time, $response_headers;
 		$time = microtime(1) - $dabr_start;
 		$body .= '<p>Processed in '.round($time, 4).' seconds ('.round(($time - $api_time - $services_time) / $time * 100).'% Dabr, '.round($api_time / $time * 100).'% Twitter, '.round($services_time / $time * 100).'% other services)</p>';
+        $body .= '<p>Rate limit: '.$response_headers['x_ratelimit_remaining'].'/'.$response_headers['x_ratelimit_limit'].' used. Will be reset in about '. intval( ( $response_headers['x_ratelimit_reset'] - time() )/(60) ) .' minutes.</p>';
 	}
 	if ($title == 'Login') {
 		$title = 'mobile Twitter Login';

@@ -395,6 +395,7 @@ function twitter_media_page($query)
 
 function twitter_process($url, $post_data = false)
 {
+    global $response_headers;
 	if ($post_data === true)
 	{
 		$post_data = array();
@@ -1951,4 +1952,19 @@ function is_64bit() {
 	$int = intval($int);
 	return ($int == 9223372036854775807);
 }
+
+/** from @abraham's oauthlib
+* Get the header info to store.
+*/
+function getHeader($ch, $header) {
+    global $response_headers;
+    $i = strpos($header, ':');
+    if (!empty($i)) {
+      $key = str_replace('-', '_', strtolower(substr($header, 0, $i)));
+      $value = trim(substr($header, $i + 2));
+      $response_headers[$key] = $value;
+    }
+    return strlen($header);
+}
+
 ?>
