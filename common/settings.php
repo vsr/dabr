@@ -146,4 +146,3 @@ function settings_page($args) {
 
 	return theme('page', 'Settings', $content);
 }
-
