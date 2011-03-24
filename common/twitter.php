@@ -346,6 +346,7 @@ function twitter_twitpic_page($query) {
 
 function twitter_process($url, $post_data = false)
 {
+    global $response_headers;
 	if ($post_data === true)
 	{
 		$post_data = array();
@@ -1707,4 +1708,19 @@ function pluralise($word, $count, $show = FALSE) {
 	if($show) $word = "{$count} {$word}";
 	return $word . (($count != 1) ? 's' : '');
 }
+
+/** from @abraham's oauthlib
+* Get the header info to store.
+*/
+function getHeader($ch, $header) {
+    global $response_headers;
+    $i = strpos($header, ':');
+    if (!empty($i)) {
+      $key = str_replace('-', '_', strtolower(substr($header, 0, $i)));
+      $value = trim(substr($header, $i + 2));
+      $response_headers[$key] = $value;
+    }
+    return strlen($header);
+}
+
 ?>
