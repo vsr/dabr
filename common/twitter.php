@@ -1406,7 +1406,8 @@ function theme_timeline($feed)
 	$page = menu_current_page();
 	$date_heading = false;
 	$first=0;
-
+    $blacklist_words = setting_fetch('blacklist_words', '');
+    $blacklist_regex = '/\b'. implode('\b|\b',array_filter(explode(',',$blacklist_words)) ) .'\b/i';
 	foreach ($feed as $status)
 	{
 		if ($first==0)
@@ -1436,6 +1437,12 @@ function theme_timeline($feed)
 		{
 			$date = $status->created_at;
 		}
+
+        if( $blacklist_words != '' and preg_match( $blacklist_regex , $status->text ) >0  ) {
+            continue;
+            //$status->text = $status->text . "<!-- (b) {$blacklist_regex} -->";
+        }
+        
 		$text = twitter_parse_tags($status->text, $status->entities);
 		$link = theme('status_time_link', $status, !$status->is_direct);
 		$actions = theme('action_icons', $status);

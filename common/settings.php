@@ -61,6 +61,7 @@ function settings_page($args) {
 		$settings['hide_inline'] = $_POST['hide_inline'];
 		$settings['utc_offset']  = (float)$_POST['utc_offset'];
 		$settings['reload_interval'] = $_POST['reload_interval'];
+		$settings['blacklist_words'] = $_POST['blacklist_words'];
 		
 		// Save a user's oauth details to a MySQL table
 		if (MYSQL_USERS == 'ON' && $newpass = $_POST['newpassword']) {
@@ -106,6 +107,7 @@ function settings_page($args) {
 	}
 
 	$reload_interval = setting_fetch('reload_interval', 0);
+	$blacklist_words = setting_fetch('blacklist_words', '');
 
 	$content .= '<form action="settings/save" method="post"><p>Colour scheme:<br /><select name="colours">';
 	$content .= theme('options', $colour_schemes, setting_fetch('colours', 1));
@@ -119,6 +121,7 @@ function settings_page($args) {
 	$content .= '<p><label><input type="checkbox" name="hide_inline" value="yes" '. (setting_fetch('hide_inline') == 'yes' ? ' checked="checked" ' : '') .' /> Hide inline media (eg TwitPic thumbnails)</label></p>';
 	$content .= '<p><label>The time in UTC is currently ' . gmdate('H:i') . ', by using an offset of <input type="text" name="utc_offset" value="'. $utc_offset .'" size="3" /> we display the time as ' . twitter_date('H:i') . '.<br />It is worth adjusting this value if the time appears to be wrong.</label></p>';
 	$content .= '<p><label>Auto-refresh the page every <input type="text" name="reload_interval" value="'. $reload_interval .'" size="5" /> seconds. Leave it empty to disable auto-reload.</label></p>';
+	$content .= '<p><label>Blacklist words(seperate words by comma): <input type="text" name="blacklist_words" value="'. $blacklist_words .'" />. Tweets containing these words will be hidden from your timeline.</label></p>';
 
 	
 	// Allow users to choose a Dabr password if accounts are enabled
