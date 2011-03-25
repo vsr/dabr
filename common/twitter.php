@@ -1567,6 +1567,9 @@ function theme_timeline($feed)
 		}
 	}
 
+    $blacklist_words = setting_fetch('blacklist_words', '');
+    $blacklist_regex = '/\b'. implode('\b|\b',array_filter(explode(',',$blacklist_words)) ) .'\b/i';
+
 	foreach ($feed as $status)
 	{
 		if ($first==0)
@@ -1597,9 +1600,15 @@ function theme_timeline($feed)
 			$date = $status->created_at;
 		}
 		$text = $status->text;
-    if (!in_array(setting_fetch('browser'), array('text', 'worksafe'))) {
-      $media = twitter_get_media($status);
-    }
+        if (!in_array(setting_fetch('browser'), array('text', 'worksafe'))) {
+          $media = twitter_get_media($status);
+        }
+
+        if( $blacklist_words != '' and preg_match( $blacklist_regex , $status->text ) >0  ) {
+            continue;
+            //$status->text = $status->text . "<!-- (b) {$blacklist_regex} -->";
+        }
+
 		$link = theme('status_time_link', $status, !$status->is_direct);
 		$actions = theme('action_icons', $status);
 		$avatar = theme('avatar', theme_get_avatar($status->from));
