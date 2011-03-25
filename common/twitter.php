@@ -1991,7 +1991,7 @@ function getHeader($ch, $header) {
 function auto_reload(){
     $reload_interval = setting_fetch('reload_interval', 0);
     if ( $reload_interval and is_numeric($reload_interval) ) {
-        return "<script type='text/javascript'> window.auto_reload = window.setInterval(function(){window.location.reload()}, ".($reload_interval*1000).") </script>";
+        return "<script type='text/javascript'> window.auto_reload = window.setInterval(function(){window.location.reload()}, ".(abs($reload_interval)*1000).") </script>";
     }
 }
 
