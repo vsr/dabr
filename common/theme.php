@@ -134,7 +134,7 @@ function theme_page($title, $content) {
 		global $dabr_start, $api_time, $response_headers;
 		$time = microtime(1) - $dabr_start;
 		$body .= '<p>Processed in '.round($time, 4).' seconds ('.round($api_time / $time * 100).'% waiting for Twitter\'s API)</p>';
-        $body .= '<p>Rate limit: '.$response_headers['x_ratelimit_remaining'].'/'.$response_headers['x_ratelimit_limit'].' used. Will be reset in '. ( $response_headers['x_ratelimit_reset'] - time() )/(60)  .' minutes.</p>';
+        $body .= '<p>Rate limit: '.$response_headers['x_ratelimit_remaining'].'/'.$response_headers['x_ratelimit_limit'].' used. Will be reset in about '. intval( ( $response_headers['x_ratelimit_reset'] - time() )/(60) ) .' minutes.</p>';
 	}
 	if ($title == 'Login') {
 		$title = 'mobile Twitter Login';
