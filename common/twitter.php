@@ -1664,7 +1664,14 @@ function theme_action_icons($status) {
 		} else {
 			$actions[] = theme('action_icon', "favourite/{$status->id}", 'images/star_grey.png', 'FAV');
 		}
-		$actions[] = theme('action_icon', "retweet/{$status->id}", 'images/retweet.png', 'RT');
+		if ($retweeted_by) // Show a diffrent retweet icon to indicate to the user this is an RT
+		{
+			$actions[] = theme('action_icon', "retweet/{$status->id}", 'images/retweeted.png', 'RT');
+		}
+		else
+		{
+			$actions[] = theme('action_icon', "retweet/{$status->id}", 'images/retweet.png', 'RT');
+		}
 		if (user_is_current_user($from))
 		{
 			$actions[] = theme('action_icon', "confirm/delete/{$status->id}", 'images/trash.gif', 'DEL');
