@@ -60,21 +60,21 @@ class Twitter_Autolink extends Twitter_Regex {
    *
    * @var  string
    */
-  protected $url_base_user = 'http://twitter.com/';
+  protected $url_base_user = BASE_URL;
 
   /**
    * URL base for list links (the username/list without the @ will be appended).
    *
    * @var  string
    */
-  protected $url_base_list = 'http://twitter.com/';
+  protected $url_base_list = BASE_URL;
 
   /**
    * URL base for hashtag links (the hashtag without the # will be appended).
    *
    * @var  string
    */
-  protected $url_base_hash = 'http://twitter.com/search?q=%23';
+  protected $url_base_hash = BASE_URL;
 
   /**
    * Whether to include the value 'nofollow' in the 'rel' attribute.
@@ -396,7 +396,7 @@ class Twitter_Autolink extends Twitter_Regex {
   protected function _addLinksToHashtags($matches) {
     $replacement = $matches[1];
     $element = $matches[2] . $matches[3];
-    $url = $this->url_base_hash . $matches[3];
+    $url = $this->url_base_hash . 'hash/' . $matches[3];
     $replacement .= $this->wrap($url, $this->class_hash, $element);
     return $replacement;
   }
@@ -435,13 +435,13 @@ class Twitter_Autolink extends Twitter_Regex {
       # Replace the list and username
       $element = $username . substr($slash_listname, 0, 26);
       $class = $this->class_list;
-      $url = $this->url_base_list . $element;
+      $url = $this->url_base_list . 'lists/' . $element;
       $postfix = substr($slash_listname, 26);
     } else {
       # Replace the username
       $element = $username;
       $class = $this->class_user;
-      $url = $this->url_base_user . $element;
+      $url = $this->url_base_user . 'user/' . $element;
       $postfix = '';
     }
     return $before . $at . $this->wrap($url, $class, $element) . $postfix . $after;

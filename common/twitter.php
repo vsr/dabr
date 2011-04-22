@@ -202,7 +202,7 @@ function twitter_trends_page($query)
 	$trends = twitter_process($request);
 	$search_url = 'search?query=';
 	foreach($trends[0]->trends as $trend) {
-		$row = array('<strong><a href="' . str_replace('http://search.twitter.com/search?q=', $search_url, $trend->url) . '">' . $trend->name . '</a></strong>');
+		$row = array('<strong><a href="' . str_replace('https://search.twitter.com/search?q=', $search_url, $trend->url) . '">' . $trend->name . '</a></strong>');
 		$rows[] = array('data' => $row,  'class' => 'tweet');
 	}
 	$headers = array($header);
@@ -494,17 +494,41 @@ function twitter_parse_tags($input, $entities = false) {
 		}
 	}
 
-	$urls = Twitter_Extractor::extractURLS($input);
+	// Create an array containing all URLs
+	$urls = Twitter_Extractor::create($input)
+				->extractURLs();
 
 	$out = $input;
 
+	// Expand all URLs
 	foreach ($urls as $value)
 	{
 		$out = str_replace ($value, long_url($value) , $out) ;
 	}
 
-	$autolink = new Dabr_Autolink();
-	$out = $autolink->autolink($out);
+	// Hyperlink the URLs 
+	if (setting_fetch('gwt') == 'on') // If the user wants links to go via GWT 
+	{
+		foreach($urls as $url) 
+		{
+			$encoded = urlencode($url);
+			$out = str_replace($url, "<a href='http://google.com/gwt/n?u={$encoded}' target='_blank'>{$url}</a>", $out);
+		}	
+	} else 
+	{
+			$out = Twitter_Autolink::create($out)
+						->addLinksToURLs();
+	}
+
+	// Hyperlink the @ and lists
+	$out = Twitter_Autolink::create($out)
+				->setTarget('')
+				->addLinksToUsernamesAndLists();
+
+	// Hyperlink the #	
+	$out = Twitter_Autolink::create($out)
+				->setTarget('')
+				->addLinksToHashtags();
 
 	//If this is worksafe mode - don't display any images
 	if (!in_array(setting_fetch('browser'), array('text', 'worksafe')))
@@ -639,7 +663,7 @@ function twitter_status_page($query) {
 }
 
 function twitter_thread_timeline($thread_id) {
-	$request = "http://search.twitter.com/search/thread/{$thread_id}";
+	$request = "https://search.twitter.com/search/thread/{$thread_id}";
 	$tl = twitter_standard_timeline(twitter_fetch($request), 'thread');
 	return $tl;
 }
@@ -928,7 +952,7 @@ function twitter_search_page() {
 function twitter_search($search_query) {
 	$page = (int) $_GET['page'];
 	if ($page == 0) $page = 1;
-	$request = 'http://search.twitter.com/search.json?result_type=recent&q=' . urlencode($search_query).'&page='.$page.'&include_entities=true';
+	$request = 'https://search.twitter.com/search.json?result_type=recent&q=' . urlencode($search_query).'&page='.$page.'&include_entities=true';
 	$tl = twitter_process($request);
 	$tl = twitter_standard_timeline($tl->results, 'search');
 	return $tl;
@@ -979,7 +1003,8 @@ function twitter_user_page($query)
 		$content .= "<p>In reply to:<br />{$tweet->text}</p>";
 
 		if ($subaction == 'replyall') {
-			$found = Twitter_Extractor::extractMentionedScreennames($tweet->text);
+			$found = Twitter_Extractor::create($tweet->text)
+				->extractMentionedUsernames();
 			$to_users = array_unique(array_merge($to_users, $found));
 		}
 	}
@@ -1641,7 +1666,7 @@ function theme_action_icons($status) {
 	//Reply All functionality.
 	if(substr_count(($status->text), '@') >= 1)
 	{
-		$found = Twitter_Extractor::extractMentionedScreennames($status->text);
+		$found = Twitter_Extractor::create($status->text)->extractMentionedUsernames();
 		$to_users = array_unique($found);
 			
 		$key = array_search(user_current_username(), $to_users); // Remove the username of the authenticated user
