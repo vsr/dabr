@@ -466,23 +466,6 @@ function twitter_fetch($url) {
 	return $response;
 }
 
-class Dabr_Autolink extends Twitter_Autolink {
-	function replacementURLs($matches) {
-		$replacement  = $matches[2];
-		$url = $matches[3];
-		if (!preg_match("#^https{0,1}://#i", $url)) {
-			$url = "http://{$url}";
-		}
-		if (setting_fetch('gwt') == 'on') {
-			$encoded = urlencode($url);
-			$replacement .= "<a href='http://google.com/gwt/n?u={$encoded}' target='_blank'>{$url}</a>";
-		} else {
-			$replacement .= theme('external_link', $url);
-		}
-		return $replacement;
-	}
-}
-
 function twitter_parse_tags($input, $entities = false) {
 
 	//Expanded t.co links to find thumbnails etc
@@ -1534,7 +1517,7 @@ function theme_followers($feed, $hide_pagination = false) {
 		$last_tweet = strtotime($user->status->created_at);
 		$content = "{$name}<br /><span class='about'>";
 		if($user->description != "")
-			$content .= "Bio: {$user->description}<br />";
+			$content .= "Bio: " . twitter_parse_tags($user->description) . "<br />";
 		if($user->location != "")
 			$content .= "Location: {$user->location}<br />";
 		$content .= "Info: ";
