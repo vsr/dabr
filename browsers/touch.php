@@ -42,31 +42,15 @@ function touch_theme_page($title, $content) {
 			</head>
 			<body id="thepage">';
 	//To display adverts, download the admob code from, well, admob :-)
-        if (file_exists("common/MkhojAd.php"))
+        if (file_exists("common/admob.php"))
         {
-		require_once ("common/MkhojAd.php");
-		// Create an object of mkhoj_class
-		$base= new MkhojAd("4028cb962a8f76a0012aa8c794a2006f");
-		// Set Number of ads required.
-		$base->set_num_of_ads(2);
-                $base->set_page_keywords("twitter facebook social chat pictures");
-                $base->set_ad_placements(array("top","bottom"));
-
-		if($base->request_ads())
-		{
-	                echo '<div class="advert">';
-        	                 echo $base->fetch_ad("top");
-			echo '</div>';
-	                echo $body;
-			echo '<div class="advert">';
-        	                 echo $base->fetch_ad("bottom");
-	                echo '</div>';
-		}
-		else // No Ads returned
-		{
-			echo $body;
-		}
-
+                echo '<div class="advert">';
+                        require_once("common/admob.php");
+                echo '</div>';
+                echo $body;
+                echo '<div class="advert">';
+                        echo admob_request($admob_params);
+                echo '</div>';
         }
         else //No ads
         {
