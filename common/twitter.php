@@ -1712,10 +1712,10 @@ function theme_action_icon($url, $image_url, $text) {
 	// alt attribute left off to reduce bandwidth by about 720 bytes per page
 	if ($text == 'MAP')
 	{
-		return "<a href='$url' target='_blank'><img src='$image_url' /></a>";
+		return "<a href='$url' alt='$text' target='_blank'><img src='$image_url' /></a>";
 	}
 
-	return "<a href='$url'><img src='$image_url' /></a>";
+	return "<a href='$url'><img src='$image_url' alt='$text' /></a>";
 }
 
 function pluralise($word, $count, $show = FALSE) {

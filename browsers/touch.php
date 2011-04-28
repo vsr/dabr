@@ -4,13 +4,13 @@ require 'desktop.php';
 
 function touch_theme_action_icon($url, $image_url, $text) {
 	if ($text == 'MAP')	{
-		return "<a href='$url' target='_blank'><img src='$image_url' width='12' height='12' /></a>";
+		return "<a href='$url' alt='$text' target='_blank'><img src='$image_url' width='12' height='12' /></a>";
 	}
 	else if ($text == 'DM')	{
-		return "<a href='$url'><img src='$image_url' width='16' height='11' /></a>";
+		return "<a href='$url'><img src='$image_url' alt='$text' width='16' height='11' /></a>";
 	}
 	else	{
-		return "<a href='$url'><img src='$image_url' width='12' height='12' /></a>";
+		return "<a href='$url'><img src='$image_url' alt='$text' width='12' height='12' /></a>";
 	}
 }
 
@@ -42,15 +42,31 @@ function touch_theme_page($title, $content) {
 			</head>
 			<body id="thepage">';
 	//To display adverts, download the admob code from, well, admob :-)
-        if (file_exists("common/admob.php"))
+        if (file_exists("common/MkhojAd.php"))
         {
-                echo '<div class="advert">';
-                        require_once("common/admob.php");
-                echo '</div>';
-                echo $body;
-                echo '<div class="advert">';
-                        echo admob_request($admob_params);
-                echo '</div>';
+		require_once ("common/MkhojAd.php");
+		// Create an object of mkhoj_class
+		$base= new MkhojAd("4028cb962a8f76a0012aa8c794a2006f");
+		// Set Number of ads required.
+		$base->set_num_of_ads(2);
+                $base->set_page_keywords("twitter facebook social chat pictures");
+                $base->set_ad_placements(array("top","bottom"));
+
+		if($base->request_ads())
+		{
+	                echo '<div class="advert">';
+        	                 echo $base->fetch_ad("top");
+			echo '</div>';
+	                echo $body;
+			echo '<div class="advert">';
+        	                 echo $base->fetch_ad("bottom");
+	                echo '</div>';
+		}
+		else // No Ads returned
+		{
+			echo $body;
+		}
+
         }
         else //No ads
         {
