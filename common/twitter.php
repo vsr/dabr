@@ -444,7 +444,7 @@ function twitter_url_shorten_callback($match) {
 	if (preg_match('#http://www.flickr.com/photos/[^/]+/(\d+)/#', $match[0], $matches)) {
 		return 'http://flic.kr/p/'.flickr_encode($matches[1]);
 	}
-	if (!defined('BITLY_API_KEY')) return $match[0];
+	if (BITLY_API_KEY == '') return $match[0];
 	$request = 'http://api.bit.ly/shorten?version=2.0.1&longUrl='.urlencode($match[0]).'&login='.BITLY_LOGIN.'&apiKey='.BITLY_API_KEY;
 	$json = json_decode(twitter_fetch($request));
 	if ($json->errorCode == 0) {
