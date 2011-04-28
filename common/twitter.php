@@ -1451,7 +1451,7 @@ function theme_timeline($feed)
 		}
 		if ($status->retweeted_by) {
 			$retweeted_by = $status->retweeted_by->user->screen_name;
-			$source .= "<br />retweeted to you by <a href='user/{$retweeted_by}'>{$retweeted_by}</a>";
+			$source .= "<br />retweeted by <a href='user/{$retweeted_by}'>{$retweeted_by}</a>";
 		}
 		$html = "<b><a href='user/{$status->from->screen_name}'>{$status->from->screen_name}</a></b> $actions $link<br />{$text} <small>$source</small>";
 
