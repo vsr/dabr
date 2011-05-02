@@ -595,7 +595,7 @@ function twitter_embed_thumbnails($text)
 				
 				if ($thumb) //Not all services have thumbnails
 				{
-					$images[] = theme('external_link', "http://$match", "<img src='http://i.tinysrc.mobi/x50/$thumb' />");
+					$images[] = theme('external_link', "http://$match", "<img src='http://i.tinysrc.mobi/x50/200/$thumb' />");
 				}
 			}
 		}
