@@ -68,6 +68,11 @@ menu_register(array(
 		'security' => true,
 		'callback' => 'twitter_confirmation_page',
 	),
+	'confirmed' => array(
+                'hidden' => true,
+                'security' => true,
+                'callback' => 'twitter_confirmed_page',
+        ),
 	'block' => array(
 		'hidden' => true,
 		'security' => true,
@@ -709,11 +714,13 @@ function twitter_block_page($query) {
 	if ($user) {
 		if($query[0] == 'block'){
 			$request = API_URL."blocks/create/create.json?screen_name={$user}";
+			twitter_process($request, true);
+	                twitter_refresh("confirmed/block/{$user}");
 		} else {
 			$request = API_URL."blocks/destroy/destroy.json?screen_name={$user}";
+			twitter_process($request, true);
+	                twitter_refresh("confirmed/unblock/{$user}");
 		}
-		twitter_process($request, true);
-		twitter_refresh("user/{$user}");
 	}
 }
 
@@ -731,7 +738,7 @@ function twitter_spam_page($query)
 	twitter_process($request, $post_data);
 
 	//Where should we return the user to?  Back to the user
-	twitter_refresh("user/{$user}");
+	twitter_refresh("confirmed/spam/{$user}");
 }
 
 
@@ -772,6 +779,26 @@ function twitter_confirmation_page($query)
 						<input type='submit' value='Yes please' />
 					</form>";
 	theme('Page', 'Confirm', $content);
+}
+
+function twitter_confirmed_page($query)
+{
+        // the URL /confirm can be passed parameters like so /confirm/param1/param2/param3 etc.
+        $action = $query[1]; // The action. block, unblock, spam
+        $target = $query[2]; // The username of the target
+	
+	switch ($action) {
+                case 'block':
+			$content  = "<p>You have <strong>blocked @$target</strong>.</p>";
+                        break;
+                case 'unblock':
+                        $content  = "<p>You have <strong>unblocked @$target</strong>.</p>";
+                        break;
+                case 'spam':
+                        $content = "<p>You have reported @$target as <strong>spam</strong>.</p>";
+                        break;
+	}
+ 	theme ('Page', 'Confirmed', $content);
 }
 
 function twitter_friends_page($query) {
