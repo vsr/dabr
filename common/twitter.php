@@ -1107,7 +1107,7 @@ function twitter_hashtag_page($query) {
 
 function theme_status_form($text = '', $in_reply_to_id = NULL) {
 	if (user_is_authenticated()) {
-		return "<form method='post' action='update'><input name='status' value='{$text}' maxlength='140' /> <input name='in_reply_to_id' value='{$in_reply_to_id}' type='hidden' /><input type='submit' value='Update' /></form>";
+		return "<form method='post' action='update'><input name='status' value='{$text}' maxlength='140' /> <input name='in_reply_to_id' value='{$in_reply_to_id}' type='hidden' /><input type='submit' value='Tweet' /></form>";
 	}
 }
 
