@@ -196,9 +196,20 @@ function twitter_trends_page($query)
 	$local = twitter_process($request);
 	$header = '<form method="get" action="trends"><select name="woeid">';
 	$header .= '<option value="1"' . (($woeid == 1) ? ' selected="selected"' : '') . '>Worldwide</option>';
+	
+	//sort the output, going for Country with Towns as children
+	foreach($local as $key => $row) {
+		$c[$key] = $row->country;
+		$t[$key] = $row->placeType->code;
+		$n[$key] = $row->name;
+	}
+	array_multisort($c, SORT_ASC, $t, SORT_DESC, $n, SORT_ASC, $local);
+	
 	foreach($local as $l) {
 		if($l->woeid != 1) {
-			$header .= '<option value="' . $l->woeid . '"' . (($l->woeid == $woeid) ? ' selected="selected"' : '') . '>' . $l->name . '</option>';
+			$n = $l->name;
+			if($l->placeType->code != 12) $n = '-' . $n;
+			$header .= '<option value="' . $l->woeid . '"' . (($l->woeid == $woeid) ? ' selected="selected"' : '') . '>' . $n . '</option>';
 		}
 	}
 	$header .= '</select> <input type="submit" value="Go" /></form>';
