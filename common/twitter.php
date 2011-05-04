@@ -959,7 +959,7 @@ function twitter_search_page() {
 	}
 	if (!isset($search_query) && array_key_exists('search_favourite', $_COOKIE)) {
 		$search_query = $_COOKIE['search_favourite'];
-	}
+		}
 	if ($search_query) {
 		$tl = twitter_search($search_query);
 		if ($search_query !== $_COOKIE['search_favourite']) {
@@ -1021,7 +1021,20 @@ function twitter_user_page($query)
 	// Are we replying to anyone?
 	if (is_numeric($in_reply_to_id)) {
 		$tweet = twitter_find_tweet_in_timeline($in_reply_to_id, $tl);
-		$content .= "<p>In reply to:<br />{$tweet->text}</p>";
+
+		// Hyperlink the URLs (target _blank
+		$out = Twitter_Autolink::create($tweet->text)
+						->addLinksToURLs();
+	        // Hyperlink the @ and lists
+	        $out = Twitter_Autolink::create($out)
+        	        	                ->setTarget('')
+                	        	        ->addLinksToUsernamesAndLists();
+	        // Hyperlink the #
+        	$out = Twitter_Autolink::create($out)
+                		                ->setTarget('')
+                                		->addLinksToHashtags();
+
+		$content .= "<p>In reply to:<br />{$out}</p>";
 
 		if ($subaction == 'replyall') {
 			$found = Twitter_Extractor::create($tweet->text)
