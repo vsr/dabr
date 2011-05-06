@@ -106,6 +106,11 @@ menu_register(array(
 		'security' => true,
 		'callback' => 'twitter_delete_page',
 	),
+	'deleteDM' => array(
+		'hidden' => true,
+		'security' => true,
+		'callback' => 'twitter_deleteDM_page',
+	),
 	'retweet' => array(
 		'hidden' => true,
 		'security' => true,
@@ -703,6 +708,18 @@ function twitter_delete_page($query) {
 	}
 }
 
+function twitter_deleteDM_page($query) {
+	//Deletes a DM
+	twitter_ensure_post_action();
+
+	$id = (string) $query[1];
+	if (is_numeric($id)) {
+		$request = API_URL."direct_messages/destroy/$id.json";
+		twitter_process($request, true);
+		twitter_refresh('directs/');
+	}
+}
+
 function twitter_ensure_post_action() {
 	// This function is used to make sure the user submitted their action as an HTTP POST request
 	// It slightly increases security for actions such as Delete, Block and Spam
@@ -783,6 +800,11 @@ function twitter_confirmation_page($query)
 		case 'delete':
 			$content = '<p>Are you really sure you want to delete your tweet?</p>';
 			$content .= "<ul><li>Tweet ID: <strong>$target</strong></li><li>There is no way to undo this action.</li></ul>";
+			break;
+
+		case 'deleteDM':
+			$content = '<p>Are you really sure you want to delete that DM?</p>';
+			$content .= "<ul><li>Tweet ID: <strong>$target</strong></li><li>There is no way to undo this action.</li><li>The DM will be deleted from both the sender's outbox <em>and</em> receiver's inbox.</li></ul>";
 			break;
 
 		case 'spam':
@@ -906,13 +928,6 @@ function twitter_retweets_page() {
 function twitter_directs_page($query) {
 	$action = strtolower(trim($query[1]));
 	switch ($action) {
-		case 'delete':
-			$id = $query[2];
-			if (!is_numeric($id)) return;
-			$request = API_URL."direct_messages/destroy/$id.json";
-			twitter_process($request, true);
-			twitter_refresh();
-
 		case 'create':
 			$to = $query[2];
 			$content = theme('directs_form', $to);
@@ -1800,7 +1815,7 @@ function theme_action_icons($status) {
 		}
 
 	} else {
-		$actions[] = theme('action_icon', "directs/delete/{$status->id}", 'images/trash.gif', 'DEL');
+		$actions[] = theme('action_icon', "confirm/deleteDM/{$status->id}", 'images/trash.gif', 'DEL');
 	}
 	if ($geo !== null)
 	{
