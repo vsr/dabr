@@ -127,7 +127,12 @@ menu_register(array(
 	'retweets' => array(
 		'security' => true,
 		'callback' => 'twitter_retweets_page',
-	)
+	),
+        'retweeted_by' => array(
+                'security' => true,
+		'hidden' => true,
+                'callback' => 'twitter_retweeters_page',
+        )
 ));
 
 function long_url($shortURL)
@@ -836,6 +841,15 @@ function twitter_followers_page($query) {
 	theme('page', 'Followers', $content);
 }
 
+//  Shows every user who retweeted a specific status
+function twitter_retweeters_page($tweet) {
+	$id = $tweet[1];
+	$request = API_URL."statuses/{$id}/retweeted_by.xml";
+	$tl = lists_paginated_process($request);
+	$content = theme('retweeters', $tl);
+	theme('page', "Everyone who retweeted {$id}", $content);
+}
+
 function twitter_update() {
 	twitter_ensure_post_action();
 	$status = twitter_url_shorten(stripslashes(trim($_POST['status'])));
@@ -1493,16 +1507,16 @@ function theme_timeline($feed)
 			$source .= " <a href='status/{$status->in_reply_to_status_id_str}'>in reply to {$status->in_reply_to_screen_name}</a>";
 		}
 		if ($status->retweet_count)	{
-			$source .= " retweeted ";
+			$source .= " <a href='retweeted_by/{$status->id}'>retweeted ";
 			switch($status->retweet_count) {
-				case(1) : $source .= "once"; break;
-				case(2) : $source .= "twice"; break;
-				default : $source .= $status->retweet_count . " times";
+				case(1) : $source .= "once</a>"; break;
+				case(2) : $source .= "twice</a>"; break;
+				default : $source .= $status->retweet_count . " times</a>";
 			}
 		}
 		if ($status->retweeted_by) {
 			$retweeted_by = $status->retweeted_by->user->screen_name;
-			$source .= "<br />retweeted by <a href='user/{$retweeted_by}'>{$retweeted_by}</a>";
+			$source .= "<br /><a href='retweeted_by/{$status->id}'>retweeted</a> by <a href='user/{$retweeted_by}'>{$retweeted_by}</a>";
 		}
 		$html = "<b><a href='user/{$status->from->screen_name}'>{$status->from->screen_name}</a></b> $actions $link<br />{$text} <small>$source</small>";
 
@@ -1562,6 +1576,48 @@ function theme_followers($feed, $hide_pagination = false) {
 	if (count($feed) == 0 || $feed == '[]') return '<p>No users to display.</p>';
 
 	foreach ($feed->users->user as $user) {
+
+		$name = theme('full_name', $user);
+		$tweets_per_day = twitter_tweets_per_day($user);
+		$last_tweet = strtotime($user->status->created_at);
+		$content = "{$name}<br /><span class='about'>";
+		if($user->description != "")
+			$content .= "Bio: " . twitter_parse_tags($user->description) . "<br />";
+		if($user->location != "")
+			$content .= "Location: {$user->location}<br />";
+		$content .= "Info: ";
+		$content .= pluralise('tweet', $user->statuses_count, true) . ", ";
+		$content .= pluralise('friend', $user->friends_count, true) . ", ";
+		$content .= pluralise('follower', $user->followers_count, true) . ", ";
+		$content .= "~" . pluralise('tweet', $tweets_per_day, true) . " per day<br />";
+		$content .= "Last tweet: ";
+		if($user->protected == 'true' && $last_tweet == 0)
+			$content .= "Private";
+		else if($last_tweet == 0)
+			$content .= "Never tweeted";
+		else
+			$content .= twitter_date('l jS F Y', $last_tweet);
+		$content .= "</span>";
+
+		$rows[] = array('data' => array(array('data' => theme('avatar', $user->profile_image_url), 'class' => 'avatar'),
+		                                array('data' => $content, 'class' => 'status shift')),
+		                'class' => 'tweet');
+
+	}
+
+	$content = theme('table', array(), $rows, array('class' => 'followers'));
+	if (!$hide_pagination)
+	$content .= theme('list_pagination', $feed);
+	return $content;
+}
+
+// Annoyingly, retweeted_by.xml and followers.xml are subtly different. 
+// TODO merge theme_retweeters with theme_followers
+function theme_retweeters($feed, $hide_pagination = false) {
+	$rows = array();
+	if (count($feed) == 0 || $feed == '[]') return '<p>No one has retweeted this status.</p>';
+
+	foreach ($feed->user as $user) {
 
 		$name = theme('full_name', $user);
 		$tweets_per_day = twitter_tweets_per_day($user);
