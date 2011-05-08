@@ -449,16 +449,15 @@ function twitter_process($url, $post_data = false)
 			$result = $result->error ? $result->error : $response;
 			if (strlen($result) > 500)
 			{
-				$result = 'Something broke on Twitter\'s end.';
-				/*
-				 $result .= $erno . ":" . $er . "<br />" ;
-				 foreach ($response_info as $key => $value)
-				 {
-					$result .= "Key: $key; Value: $value<br />";
-					}
-					*/
+				$result = 'Something broke on Twitter\'s end.' ;
+			/*
+			 foreach ($response_info as $key => $value)
+			 {
+				$result .= "Key: $key; Value: $value<br />";
+				}
+				*/				
 			}
-			theme('error', "<h2>An error occured while calling the Twitter API</h2><p>{$response_info['http_code']}: {$result}</p><hr><p>$url</p>");
+			theme('error', "<h2>An error occured while calling the Twitter API</h2><p>{$response_info['http_code']}: {$result}</p><hr>");
 	}
 }
 
@@ -1647,13 +1646,6 @@ function theme_retweeters($feed, $hide_pagination = false) {
 		$content .= pluralise('friend', $user->friends_count, true) . ", ";
 		$content .= pluralise('follower', $user->followers_count, true) . ", ";
 		$content .= "~" . pluralise('tweet', $tweets_per_day, true) . " per day<br />";
-		$content .= "Last tweet: ";
-		if($user->protected == 'true' && $last_tweet == 0)
-			$content .= "Private";
-		else if($last_tweet == 0)
-			$content .= "Never tweeted";
-		else
-			$content .= twitter_date('l jS F Y', $last_tweet);
 		$content .= "</span>";
 
 		$rows[] = array('data' => array(array('data' => theme('avatar', $user->profile_image_url), 'class' => 'avatar'),
