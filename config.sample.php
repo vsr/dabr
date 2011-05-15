@@ -1,6 +1,6 @@
 <?php
 
-// Twitter's API URL.
+// Twitter's API URL - you can also use https://api.twitter.com/1/ if you want a secure connection to Twitter
 define('API_URL','http://api.twitter.com/1/');
 
 // Cookie encryption key. Max 52 characters
@@ -14,15 +14,11 @@ define('OAUTH_CONSUMER_SECRET', '');
 define('BITLY_LOGIN', '');
 define('BITLY_API_KEY', '');
 
-// slideshare.com API key and Shared secret for getting Slidesha.re thumbnails. Available from http://www.slideshare.net/developers/applyforapi
-define('SLIDESHARE_API_KEY', '');
-define('SLIDESHARE_SHARED_SECRET', '');
-
-// Optional API keys for retrieving thumbnails
-define('FLICKR_API_KEY', '');
-
 // API key for Twitpic - sign up at http://dev.twitpic.com/
 define('TWITPIC_API_KEY', '');
+
+// API key for InMobi adverts - sign up at http://inmobi.com/
+define('INMOBI_API_KEY', '');
 
 // Optional: Allows you to turn shortened URLs into long URLs http://www.longurlplease.com/docs
 // Uncomment to enable.
