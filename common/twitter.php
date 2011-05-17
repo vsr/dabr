@@ -832,7 +832,7 @@ function twitter_confirmed_page($query)
                         $content  = "<p><span class='avatar'><img src='images/dabr.png' width='48' height='48' /></span><span class='status shift'>Hello again @$target - you have been <strong>unblocked</strong>.</span></p>";
                         break;
                 case 'spam':
-                        $content = "<p><img src='images/dabr.png' width='48' height='48' /><span class='avatar'><img src='images/dabr.png' width='48' height='48' /></span><span class='status shift'>Yum! Yum! Yum! Delicious spam! Goodbye @$target.</span></p>";
+                        $content = "<p>><span class='avatar'><img src='images/dabr.png' width='48' height='48' /></span><span class='status shift'>Yum! Yum! Yum! Delicious spam! Goodbye @$target.</span></p>";
                         break;
 	}
  	theme ('Page', 'Confirmed', $content);
