@@ -1158,7 +1158,7 @@ function theme_status($status) {
 
 	$time_since = theme('status_time_link', $status);
 	$parsed = twitter_parse_tags($status->text, $status->entities);
-	$avatar = theme('avatar', $status->user->profile_image_url);
+	$avatar = theme('avatar', theme_get_avatar($status->user));
 
 	$out = theme('status_form', "@{$status->user->screen_name} ");
 	$out .= "<div class='timeline'>\n";
@@ -1217,7 +1217,7 @@ function theme_user_header($user) {
 	$followed_by = $following->relationship->target->followed_by; //The $user is followed by the authenticating
 	$following = $following->relationship->target->following;
 	$name = theme('full_name', $user);
-	$full_avatar = str_replace('_normal.', '.', $user->profile_image_url);
+	$full_avatar = str_replace('_normal.', '.', theme_get_avatar($user));
 	$link = theme('external_link', $user->url);
 	//Some locations have a prefix which should be removed (UbertTwitter and iPhone)
 	//Sorry if my PC has converted from UTF-8 with the U (artesea)
@@ -1227,7 +1227,7 @@ function theme_user_header($user) {
 	$tweets_per_day = twitter_tweets_per_day($user, 1);
 	$bio = twitter_parse_tags($user->description);
 	$out = "<div class='profile'>";
-    $out .= "<span class='avatar'>".theme('external_link', $full_avatar, theme('avatar', $user->profile_image_url))."</span>";
+    $out .= "<span class='avatar'>".theme('external_link', $full_avatar, theme('avatar', theme_get_avatar($user)))."</span>";
 	$out .= "<span class='status shift'><b>{$name}</b><br />";
 	$out .= "<span class='about'>";
 	if ($user->verified == true) {
@@ -1388,7 +1388,7 @@ function twitter_standard_timeline($feed, $source) {
 					'from' => (object) array(
 						'id' => $status->from_user_id,
 						'screen_name' => $status->from_user,
-						'profile_image_url' => $status->profile_image_url,
+						'profile_image_url' => theme_get_avatar($status),
 					),
 					'to' => (object) array(
 						'id' => $status->to_user_id,
@@ -1515,7 +1515,7 @@ function theme_timeline($feed)
 		$text = twitter_parse_tags($status->text, $status->entities);
 		$link = theme('status_time_link', $status, !$status->is_direct);
 		$actions = theme('action_icons', $status);
-		$avatar = theme('avatar', $status->from->profile_image_url);
+		$avatar = theme('avatar', theme_get_avatar($status->from));
 		$source = $status->source ? " from ".str_replace('rel="nofollow"', 'rel="nofollow" target="_blank"', preg_replace('/&(?![a-z][a-z0-9]*;|#[0-9]+;|#x[0-9a-f]+;)/i', '&amp;', $status->source)) : ''; //need to replace & in links with &amps and force new window on links
 		if ($status->in_reply_to_status_id)	{
 			$source .= " <a href='status/{$status->in_reply_to_status_id_str}'>in reply to {$status->in_reply_to_screen_name}</a>";
@@ -1612,7 +1612,7 @@ function theme_followers($feed, $hide_pagination = false) {
 			$content .= twitter_date('l jS F Y', $last_tweet);
 		$content .= "</span>";
 
-		$rows[] = array('data' => array(array('data' => theme('avatar', $user->profile_image_url), 'class' => 'avatar'),
+		$rows[] = array('data' => array(array('data' => theme('avatar', theme_get_avatar($user)), 'class' => 'avatar'),
 		                                array('data' => $content, 'class' => 'status shift')),
 		                'class' => 'tweet');
 
@@ -1647,7 +1647,7 @@ function theme_retweeters($feed, $hide_pagination = false) {
 		$content .= "~" . pluralise('tweet', $tweets_per_day, true) . " per day<br />";
 		$content .= "</span>";
 
-		$rows[] = array('data' => array(array('data' => theme('avatar', $user->profile_image_url), 'class' => 'avatar'),
+		$rows[] = array('data' => array(array('data' => theme('avatar', theme_get_avatar($user)), 'class' => 'avatar'),
 		                                array('data' => $content, 'class' => 'status shift')),
 		                'class' => 'tweet');
 
@@ -1669,6 +1669,24 @@ function theme_full_name($user) {
 	return $name;
 }
 
+// http://groups.google.com/group/twitter-development-talk/browse_thread/thread/50fd4d953e5b5229#
+function theme_get_avatar($object) {
+	// Are we calling the HTTPS API?	
+	$pos = strpos(API_URL, "https");
+
+	// Not useing HTTPS? Return the normal one
+	if ($pos === false) {
+		return $object->profile_image_url;
+	}
+
+	// Is there a secure image to return?
+	if ($object->profile_image_url_https) {
+		return $object->profile_image_url_https;
+	}
+
+	return $object->profile_image_url;
+}
+
 function theme_no_tweets() {
 	return '<p>No tweets to display.</p>';
 }
@@ -1681,7 +1699,7 @@ function theme_search_results($feed) {
 		$actions = theme('action_icons', $status);
 
 		$row = array(
-		theme('avatar', $status->profile_image_url),
+		theme('avatar', theme_get_avatar($status)),
       "<a href='user/{$status->from_user}'>{$status->from_user}</a> $actions - {$link}<br />{$text}",
 		);
 		if (twitter_is_reply($status)) {
