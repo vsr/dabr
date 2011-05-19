@@ -1,5 +1,7 @@
 <?php
 
+error_reporting(E_ALL ^ E_NOTICE);
+
 // Twitter's API URL - you can also use https://api.twitter.com/1/ if you want a secure connection to Twitter
 define('API_URL','http://api.twitter.com/1/');
 
