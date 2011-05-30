@@ -483,14 +483,18 @@ function twitter_url_shorten_callback($match) {
 }
 
 function twitter_fetch($url) {
+	global $services_time;
 	$ch = curl_init();
 	curl_setopt($ch, CURLOPT_URL, $url);
 	//curl_setopt($ch, CURLOPT_TIMEOUT, 10);
 	$user_agent = "Mozilla/5.0 (compatible; dabr; " . BASE_URL . ")";
 	curl_setopt($ch, CURLOPT_USERAGENT, $user_agent);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	$fetch_start = microtime(1);
 	$response = curl_exec($ch);
 	curl_close($ch);
+	
+	$services_time += microtime(1) - $fetch_start;
 	return $response;
 }
 
@@ -540,13 +544,6 @@ function twitter_parse_tags($input, $entities = false) {
 	$out = Twitter_Autolink::create($out)
 				->setTarget('')
 				->addLinksToHashtags();
-
-	//If this is worksafe mode - don't display any images
-	if (!in_array(setting_fetch('browser'), array('text', 'worksafe')))
-	{
-		//Add in images
-		$out = embedly_embed_thumbnails($out);
-	}
 
 	//Linebreaks.  Some clients insert \n for formatting.
 	$out = nl2br($out);
@@ -1444,6 +1441,12 @@ function theme_timeline($feed)
 	$page = menu_current_page();
 	$date_heading = false;
 	$first=0;
+	
+	// Only embed images in suitable browsers
+	if (!in_array(setting_fetch('browser'), array('text', 'worksafe')))
+	{
+		embedly_embed_thumbnails($feed);
+	}
 
 	foreach ($feed as $status)
 	{
