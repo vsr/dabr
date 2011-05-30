@@ -150,21 +150,9 @@ function theme_page($title, $content) {
 				<meta name="viewport" content="width=device-width; initial-scale=1.0;" />
 			</head>
 			<body>';
-	//To display adverts, download the admob code from, well, admob :-)
-	if (file_exists("common/admob.php"))
-	{
-		echo '<div class="advert">';
-			require_once("common/admob.php");
-		echo '</div>';
+
+		echo theme('advert');
 		echo $body;
-		echo '<div class="advert">';		
-			echo admob_request($admob_params);
-		echo '</div>';
-	}
-	else //No ads
-	{
-		echo $body;
-	}
 
 	echo		'</body>
 		</html>';

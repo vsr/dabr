@@ -82,4 +82,48 @@ function googleAnalyticsGetImageUrl() {
 	return str_replace("&", "&amp;", $url);
 }
 
+
+/* Example advert code */
+
+function theme_advert() {
+//	require_once('admob.php');
+//	return '<p>Ad: '.admob_request($admob_params).'</p>';
+}
+
+function bigtouch_theme_advert() {
+	return touch_theme_advert();
+}
+
+function touch_theme_advert() {
+	return '<script type="text/javascript"><!--
+window.googleAfmcRequest = {
+  client: "ca-mb-pub-8636063415744027",
+  ad_type: "text_image",
+  output: "html",
+  channel: "0175144212",
+  format: "320x50_mb",
+  oe: "utf8",
+  color_border: "555555",
+  color_bg: "EEEEEE",
+  color_link: "0000CC",
+  color_text: "000000",
+  color_url: "008000",
+};
+//--></script>
+<script type="text/javascript" src="http://pagead2.googlesyndication.com/pagead/show_afmc_ads.js"></script>
+';
+}
+
+function desktop_theme_advert() {
+	return '<script type="text/javascript"><!--
+google_ad_client = "pub-8636063415744027";
+google_ad_slot = "7965285384";
+google_ad_width = 728;
+google_ad_height = 90;
+//-->
+</script>
+<script type="text/javascript" src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>';
+}
+
 ?>

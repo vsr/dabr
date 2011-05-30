@@ -221,9 +221,6 @@ function theme_login() {
 	
 	if (MYSQL_USERS == 'ON') $content .= '<p>No access to Twitter.com? <a href="login">Sign in with your Dabr account</a></p>';
 	$content .= '</div>';
-	if (function_exists('theme_advert')) {
-		$content .= theme('advert');
-	}
 	return $content;
 }
 
