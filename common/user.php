@@ -48,7 +48,7 @@ function user_oauth() {
 		$_SESSION['oauth_request_token_secret'] = $token['oauth_token_secret'];
 
 		// redirect user to authorisation URL
-		$authorise_url = 'http://api.twitter.com/oauth/authorize?oauth_token='.$token['oauth_token'];
+		$authorise_url = 'https://api.twitter.com/oauth/authorize?oauth_token='.$token['oauth_token'];
 		header("Location: $authorise_url");
 	}
 }
