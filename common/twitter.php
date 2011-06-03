@@ -498,6 +498,20 @@ function twitter_fetch($url) {
 	return $response;
 }
 
+//	http://dev.twitter.com/pages/tweet_entities
+function twitter_get_media($status) {
+	if($status->entities->media) {
+	
+		$media_html = "<a href=\"" . $status->entities->media[0]->media_url_https . "\" target='_blank'>";
+		$media_html .= 	"<img src=\"" . $status->entities->media[0]->media_url_https . ":thumb\" width=\"" . $status->entities->media[0]->sizes->thumb->w . 
+								"\" height=\"" . $status->entities->media[0]->sizes->thumb->h . "\" />";
+		$media_html .= "</a><br />";
+		
+		return $media_html;
+	}
+	
+}
+
 function twitter_parse_tags($input, $entities = false) {
 
 	//Expanded t.co links to find thumbnails etc
@@ -1478,6 +1492,7 @@ function theme_timeline($feed)
 			$date = $status->created_at;
 		}
 		$text = twitter_parse_tags($status->text, $status->entities);
+		$media = twitter_get_media($status);
 		$link = theme('status_time_link', $status, !$status->is_direct);
 		$actions = theme('action_icons', $status);
 		$avatar = theme('avatar', theme_get_avatar($status->from));
@@ -1497,7 +1512,7 @@ function theme_timeline($feed)
 			$retweeted_by = $status->retweeted_by->user->screen_name;
 			$source .= "<br /><a href='retweeted_by/{$status->id}'>retweeted</a> by <a href='user/{$retweeted_by}'>{$retweeted_by}</a>";
 		}
-		$html = "<b><a href='user/{$status->from->screen_name}'>{$status->from->screen_name}</a></b> $actions $link<br />{$text} <small>$source</small>";
+		$html = "<b><a href='user/{$status->from->screen_name}'>{$status->from->screen_name}</a></b> $actions $link<br />{$text}<br />$media<small>$source</small>";
 
 		unset($row);
 		$class = 'status';
