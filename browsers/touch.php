@@ -1,6 +1,7 @@
 <?php
 
 require 'desktop.php';
+require_once ("common/advert.php");
 
 function touch_theme_action_icon($url, $image_url, $text) {
 	if ($text == 'MAP')	{
@@ -33,21 +34,21 @@ function touch_theme_page($title, $content) {
 	ob_start('ob_gzhandler');
 	header('Content-Type: text/html; charset=utf-8');
 	echo 	'<!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.0//EN" "http://www.wapforum.org/DTD/xhtml-mobile10.dtd">
-		<html xmlns="http://www.w3.org/1999/xhtml">
-			<head>
-				<meta name="viewport" content="width=device-width; initial-scale=1.0;" />
-				<title>',$title,'</title>
-				<base href="',BASE_URL,'" />
-				'.theme('css').'
-			</head>
-			<body id="thepage">';
+			<html xmlns="http://www.w3.org/1999/xhtml">
+				<head>
+					<meta name="viewport" content="width=device-width; initial-scale=1.0;" />
+					<title>',$title,'</title>
+					<base href="',BASE_URL,'" />
+					'.theme('css').'
+				</head>
+				<body id="thepage">';
 			
-		echo theme('advert');
-        echo $body;
-        
-        echo 		'</body>
-		</html>';
-        exit();
+	echo 			theme('advert');
+	echo			$body;
+			
+	echo		'</body>
+			</html>';
+	exit();
 }
 
 function touch_theme_menu_top() {
@@ -78,7 +79,7 @@ function touch_theme_status_time_link($status, $is_link = true) {
 	$out = theme_status_time_link($status, $is_link);
 	//old method didn't work with conversation view (and no longer with correct pluralisation)
 	$out = str_replace(array(' years ago', ' year ago', ' days ago', ' day ago', ' hours ago', ' hour ago', ' mins ago', ' min ago', ' secs ago', ' sec ago'),
-	                   array('y', 'y', 'd', 'd', 'h', 'h', 'm', 'm', 's', 's'), $out);
+							array('y', 'y', 'd', 'd', 'h', 'h', 'm', 'm', 's', 's'), $out);
 	return $out;
 }
 

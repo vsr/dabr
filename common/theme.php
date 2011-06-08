@@ -1,4 +1,5 @@
 <?php
+require_once ("common/advert.php");
 
 $current_theme = false;
 
@@ -142,7 +143,7 @@ function theme_page($title, $content) {
 	ob_start('ob_gzhandler');
 	header('Content-Type: text/html; charset=utf-8');
 	echo	'<!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.0//EN" "http://www.wapforum.org/DTD/xhtml-mobile10.dtd">
-		<html xmlns="http://www.w3.org/1999/xhtml">
+			<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<title>',$_SERVER['SERVER_NAME'],' - ',$title,'</title>
 				<base href="',BASE_URL,'" />
@@ -151,10 +152,10 @@ function theme_page($title, $content) {
 			</head>
 			<body>';
 
-		echo theme('advert');
-		echo $body;
+	echo 	theme('advert');
+	echo 	$body;
 
-	echo		'</body>
+	echo	'</body>
 		</html>';
 	exit();
 }
