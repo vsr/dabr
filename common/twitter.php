@@ -538,7 +538,7 @@ function twitter_parse_tags($input, $entities = false) {
 			$url = $urls->url;
 			
 			// Replace all URLs *UNLESS* they have already been linked (for example to an image)
-			$pattern = '#((?<!href\=(\'|\"))'.$url.')#i';
+			$pattern = '#((?<!href\=(\'|\"))'.preg_quote($url,'#').')#i';
 			$out = preg_replace($pattern,  $link_html, $out);
 		}
 	} else {  // If Entities haven't been returned, use Autolink
