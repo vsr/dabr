@@ -1566,7 +1566,31 @@ function twitter_is_reply($status) {
 		return false;
 	}
 	$user = user_current_username();
-	return preg_match("#@$user#i", $status->text);
+
+	//	Use Twitter Entities to see if this contains a mention of the user
+	if ($status->entities)	// If there are entities
+	{
+		$entities = $status->entities;
+		foreach($entities->user_mentions as $mentions)
+		{
+			if ($mentions->screen_name == $user) 
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	// If there are no entities (for example on a search) do a simple regex
+	$found = Twitter_Extractor::create($status->text)->extractMentionedUsernames();
+	foreach($found as $mentions)
+	{
+		if ($mentions == $user) 
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 function theme_followers($feed, $hide_pagination = false) {
