@@ -514,41 +514,55 @@ function twitter_get_media($status) {
 
 function twitter_parse_tags($input, $entities = false) {
 
-	//Expanded t.co links to find thumbnails etc
+	// Use the Entities to replace hyperlink URLs
+	// http://dev.twitter.com/pages/tweet_entities
 	if($entities) {
+		$out = $input;
 		foreach($entities->urls as $urls) {
-			if($urls->expanded_url != "") {
-				$input = str_replace($urls->url, $urls->expanded_url, $input);
+			if($urls->display_url != "") {
+				$display_url = $urls->display_url;
+			}else {
+				$display_url = $urls->url;
 			}
+
+			if (setting_fetch('gwt') == 'on') // If the user wants links to go via GWT 
+			{
+				$encoded = urlencode($urls->url);
+				$link = "http://google.com/gwt/n?u={$encoded}";
+			}
+			else {
+				$link = $urls->url;
+			}
+			
+			$link_html = '<a href="' . $link . '" target="_blank">' . $display_url . '</a>';
+			$url = $urls->url;
+			
+			// Replace all URLs *UNLESS* they have already been linked (for example to an image)
+			$pattern = '#((?<!href\=(\'|\"))'.$url.')#i';
+			$out = preg_replace($pattern,  $link_html, $out);
+		}
+	} else {  // If Entities haven't been returned, use Autolink
+		// Create an array containing all URLs
+		$urls = Twitter_Extractor::create($input)
+				->extractURLs();
+			
+		$out = $input;	
+		
+		// Hyperlink the URLs 
+		if (setting_fetch('gwt') == 'on') // If the user wants links to go via GWT 
+		{
+			foreach($urls as $url) 
+			{
+				$encoded = urlencode($url);
+				$out = str_replace($url, "<a href='http://google.com/gwt/n?u={$encoded}' target='_blank'>{$url}</a>", $out);
+			}	
+		} else 
+		{
+				$out = Twitter_Autolink::create($out)
+							->addLinksToURLs();
 		}
 	}
-
-	// Create an array containing all URLs
-	$urls = Twitter_Extractor::create($input)
-				->extractURLs();
-
-	$out = $input;
-
-	// Expand all URLs
-	foreach ($urls as $value)
-	{
-		$out = str_replace ($value, long_url($value) , $out) ;
-	}
-
-	// Hyperlink the URLs 
-	if (setting_fetch('gwt') == 'on') // If the user wants links to go via GWT 
-	{
-		foreach($urls as $url) 
-		{
-			$encoded = urlencode($url);
-			$out = str_replace($url, "<a href='http://google.com/gwt/n?u={$encoded}' target='_blank'>{$url}</a>", $out);
-		}	
-	} else 
-	{
-			$out = Twitter_Autolink::create($out)
-						->addLinksToURLs();
-	}
-
+	
 	// Hyperlink the @ and lists
 	$out = Twitter_Autolink::create($out)
 				->setTarget('')
@@ -561,15 +575,6 @@ function twitter_parse_tags($input, $entities = false) {
 
 	//Linebreaks.  Some clients insert \n for formatting.
 	$out = nl2br($out);
-
-	//Return t.co links back else breaking Twitter T&Cs
-	if($entities) {
-		foreach($entities->urls as $urls) {
-			if($urls->expanded_url != "") {
-				$out = preg_replace('#(?<=(\"|\'|\>))'.preg_quote($urls->expanded_url,'#').'(?=(\"|\'|\<))#i', $urls->url, $out);
-			}
-		}
-	}
 
 	//Return the completed string
 	return $out;
