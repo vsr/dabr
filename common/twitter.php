@@ -1391,7 +1391,7 @@ function twitter_standard_timeline($feed, $source) {
 				}
 				unset($new->sender, $new->recipient);
 				$new->is_direct = true;
-				$output[] = $new;
+				$output[$new->id_str] = $new;
 			}
 			return $output;
 
