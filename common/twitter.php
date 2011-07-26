@@ -1500,7 +1500,10 @@ function theme_timeline($feed)
 	// Only embed images in suitable browsers
 	if (!in_array(setting_fetch('browser'), array('text', 'worksafe')))
 	{
-		embedly_embed_thumbnails($feed);
+		if (EMBEDLY_KEY !== '')
+		{
+			embedly_embed_thumbnails($feed);
+		}
 	}
 
 	foreach ($feed as $status)
