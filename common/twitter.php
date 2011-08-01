@@ -491,12 +491,12 @@ function twitter_url_shorten_callback($match) {
 		return 'http://flic.kr/p/'.flickr_encode($matches[1]);
 	}
 	if (BITLY_API_KEY == '') return $match[0];
-	$request = 'http://api.bit.ly/shorten?version=2.0.1&longUrl='.urlencode($match[0]).'&login='.BITLY_LOGIN.'&apiKey='.BITLY_API_KEY;
+	// http://code.google.com/p/bitly-api/wiki/ApiDocumentation#/v3/shorten
+	$request = 'http://api.bitly.com/v3/shorten?login='.BITLY_LOGIN.'&apiKey='.BITLY_API_KEY.'&longUrl='.urlencode($match[0]).'&format=json';
 	$json = json_decode(twitter_fetch($request));
-	if ($json->errorCode == 0) {
-		$results = (array) $json->results;
-		$result = array_pop($results);
-		return $result->shortUrl;
+
+	if ($json->status_code == 200) {
+		return $json->data->url;
 	} else {
 		return $match[0];
 	}
