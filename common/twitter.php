@@ -492,7 +492,7 @@ function twitter_url_shorten_callback($match) {
 	}
 	if (BITLY_API_KEY == '') return $match[0];
 	// http://code.google.com/p/bitly-api/wiki/ApiDocumentation#/v3/shorten
-	$request = 'http://api.bitly.com/v3/shorten?login='.BITLY_LOGIN.'&apiKey='.BITLY_API_KEY.'&longUrl='.urlencode($match[0]).'&format=json';
+	$request = 'https://api-ssl.bitly.com/v3/shorten?login='.BITLY_LOGIN.'&apiKey='.BITLY_API_KEY.'&longUrl='.urlencode($match[0]).'&format=json';
 	$json = json_decode(twitter_fetch($request));
 
 	if ($json->status_code == 200) {
