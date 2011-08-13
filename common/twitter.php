@@ -1511,6 +1511,12 @@ function theme_timeline($feed)
 	$date_heading = false;
 	$first=0;
 	
+	// Add the hyperlinks *BEFORE* adding images
+	foreach ($feed as &$status)
+	{
+		$status->text = twitter_parse_tags($status->text, $status->entities);
+	}
+	
 	// Only embed images in suitable browsers
 	if (!in_array(setting_fetch('browser'), array('text', 'worksafe')))
 	{
@@ -1549,7 +1555,7 @@ function theme_timeline($feed)
 		{
 			$date = $status->created_at;
 		}
-		$text = twitter_parse_tags($status->text, $status->entities);
+		$text = $status->text;
 		$media = twitter_get_media($status);
 		$link = theme('status_time_link', $status, !$status->is_direct);
 		$actions = theme('action_icons', $status);
