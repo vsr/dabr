@@ -243,7 +243,7 @@ function twitter_trends_page($query)
 	$trends = twitter_process($request);
 	$search_url = 'search?query=';
 	foreach($trends[0]->trends as $trend) {
-		$row = array('<strong><a href="' . str_replace('http://search.twitter.com/search?q=', $search_url, $trend->url) . '">' . $trend->name . '</a></strong>');
+		$row = array('<strong><a href="' . str_replace('http://twitter.com/search/', $search_url, $trend->url) . '">' . $trend->name . '</a></strong>');
 		$rows[] = array('data' => $row,  'class' => 'tweet');
 	}
 	$headers = array($header);
@@ -539,8 +539,8 @@ function twitter_parse_tags($input, $entities = false) {
 	if($entities) {
 		$out = $input;
 		foreach($entities->urls as $urls) {
-			if($urls->display_url != "") {
-				$display_url = $urls->display_url;
+			if($urls->expanded_url != "") {
+				$display_url = $urls->expanded_url;
 			}else {
 				$display_url = $urls->url;
 			}
