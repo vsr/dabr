@@ -1851,22 +1851,11 @@ function theme_action_icons($status) {
 		$actions[] = theme('action_icon', "user/{$from}/reply/{$status->id}", 'images/reply.png', '@');
 	}
 	//Reply All functionality.
-	if(substr_count(($status->text), '@') >= 1)
+	if( $status->entities->user_mentions )
 	{
-		$found = Twitter_Extractor::create($status->text)->extractMentionedUsernames();
-		$to_users = array_unique($found);
-			
-		$key = array_search(user_current_username(), $to_users); // Remove the username of the authenticated user
-		if ($key != NULL || $key !== FALSE) // Depending on PHP version
-		{
-			unset($to_users[$key]); // remove the username from array
-		}
-			
-		if (count($to_users) >= 1)
-		{
-			$actions[] = theme('action_icon', "user/{$from}/replyall/{$status->id}", 'images/replyall.png', 'REPLY ALL');
-		}
+		$actions[] = theme('action_icon', "user/{$from}/replyall/{$status->id}", 'images/replyall.png', 'REPLY ALL');
 	}
+
 	if (!user_is_current_user($from)) {
 		$actions[] = theme('action_icon', "directs/create/{$from}", 'images/dm.png', 'DM');
 	}
