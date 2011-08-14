@@ -1516,6 +1516,7 @@ function theme_timeline($feed)
 	{
 		$status->text = twitter_parse_tags($status->text, $status->entities);
 	}
+	unset($status);
 	
 	// Only embed images in suitable browsers
 	if (!in_array(setting_fetch('browser'), array('text', 'worksafe')))
