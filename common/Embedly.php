@@ -20,7 +20,7 @@ function embedly_embed_thumbnails(&$feed) {
 		'#ts1\.in\/(\d+)#i'								=> 'http://ts1.in/mini/%s',
 		'#moby\.to\/\?([\w\d]+)#i'						=> 'http://moby.to/%s:square',
 		'#mobypicture\.com\/\?([\w\d]+)#i'			=> 'http://mobypicture.com/?%s:square',
-		'#twic\.li\/([\w\d]{2,7})#'					=> 'http://twic.li/api/photo.jpg?id=%s&size=small',
+		'#twic\.li\/([\w\d]{2,7})#'					=> 'http://twic.li/e%s',
 		'#tweetphoto\.com\/(\d+)#'						=> 'http://api.plixi.com/api/tpapi.svc/imagefromurl?url=http://tweetphoto.com/%s',
 		'#plixi\.com\/p\/(\d+)#'						=> 'http://api.plixi.com/api/tpapi.svc/imagefromurl?url=http://plixi.com/p/%s&size=small',
 		'#phz\.in\/([\d\w]+)#'							=> 'http://api.phreadz.com/thumb/%s?t=code',
