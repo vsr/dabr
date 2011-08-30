@@ -21,7 +21,7 @@ function goGeo(node) {
 	if (started) return;
 	started = true;
 	geoStatus("Locating...");
-	navigator.geolocation.getCurrentPosition(geoSuccess, geoStatus);
+	navigator.geolocation.getCurrentPosition(geoSuccess, geoStatus , { enableHighAccuracy: true });
 }
 function geoStatus(msg) {
 	document.getElementById("geo").style.display = "inline";
