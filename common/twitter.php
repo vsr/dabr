@@ -3,7 +3,8 @@
 require 'Autolink.php';
 require 'Extractor.php';
 require 'Embedly.php';
-
+require 'tmhOAuth.php';
+		
 menu_register(array(
 	'' => array(
 		'callback' => 'twitter_home_page',
@@ -122,9 +123,9 @@ menu_register(array(
 		'hidden' => true,
 		'callback' => 'twitter_hashtag_page',
 	),
-	'twitpic' => array(
+	'Upload Picture' => array(
 		'security' => true,
-		'callback' => 'twitter_twitpic_page',
+		'callback' => 'twitter_media_page',
 	),
 	'trends' => array(
 		'security' => true,
@@ -273,116 +274,84 @@ updateCount();
 	return $script;
 }
 
-function twitter_twitpic_page($query) {
-	if (user_type() == 'oauth') {
-		//V2 of the Twitpic API allows for OAuth
-		//http://dev.twitpic.com/docs/2/upload/
+function twitter_media_page($query) 
+{
+	$content = "";
 
-		//Has the user submitted an image and message?
-		if ($_POST['message']) {
-			$twitpicURL = 'http://api.twitpic.com/2/upload.json';
+	if ($_POST['message'] && $_FILES['image']['tmp_name']) 
+	{
+		require 'tmhOAuth.php';
+		
+		list($oauth_token, $oauth_token_secret) = explode('|', $GLOBALS['user']['password']);
+		
+		$tmhOAuth = new tmhOAuth(array(
+			'consumer_key'    => OAUTH_CONSUMER_KEY,
+			'consumer_secret' => OAUTH_CONSUMER_SECRET,
+			'user_token'      => $oauth_token,
+			'user_secret'     => $oauth_token_secret,
+		));
 
-			//Set the initial headers
-			$header = array(
-				'X-Auth-Service-Provider: https://api.twitter.com/1/account/verify_credentials.json', 
-				'X-Verify-Credentials-Authorization: OAuth realm="http://api.twitter.com/"'
-			);
+		$image = "{$_FILES['image']['tmp_name']};type={$_FILES['image']['type']};filename={$_FILES['image']['name']}";
+		$status = $_POST['message'];
 
-			//Using Abraham's OAuth library
-			require_once('OAuth.php');
+		$code = $tmhOAuth->request('POST', 'https://upload.twitter.com/1/statuses/update_with_media.json',
+											  array(
+												 'media[]'  => "@{$image}",
+												 'status'   => " " . $_POST['message'] //A space is needed because twitter b0rks if first char is an @
+											  ),
+											  true, // use auth
+											  true  // multipart
+										);
 
-			// instantiating OAuth customer
-			$consumer = new OAuthConsumer(OAUTH_CONSUMER_KEY, OAUTH_CONSUMER_SECRET);
-
-			// instantiating signer
-			$sha1_method = new OAuthSignatureMethod_HMAC_SHA1();
-
-			// user's token
-			list($oauth_token, $oauth_token_secret) = explode('|', $GLOBALS['user']['password']);
-			$token = new OAuthConsumer($oauth_token, $oauth_token_secret);
-
-			// Generate all the OAuth parameters needed
-			$signingURL = 'https://api.twitter.com/1/account/verify_credentials.json';
-			$request = OAuthRequest::from_consumer_and_token($consumer, $token, 'GET', $signingURL, array());
-			$request->sign_request($sha1_method, $consumer, $token);
-
-			$header[1] .= ", oauth_consumer_key=\"" . $request->get_parameter('oauth_consumer_key') ."\"";
-			$header[1] .= ", oauth_signature_method=\"" . $request->get_parameter('oauth_signature_method') ."\"";
-			$header[1] .= ", oauth_token=\"" . $request->get_parameter('oauth_token') ."\"";
-			$header[1] .= ", oauth_timestamp=\"" . $request->get_parameter('oauth_timestamp') ."\"";
-			$header[1] .= ", oauth_nonce=\"" . $request->get_parameter('oauth_nonce') ."\"";
-			$header[1] .= ", oauth_version=\"" . $request->get_parameter('oauth_version') ."\"";
-			$header[1] .= ", oauth_signature=\"" . urlencode($request->get_parameter('oauth_signature')) ."\"";
-
-			//open connection
-			$ch = curl_init();
-										
-			//Set paramaters
-			curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-
-			//set the url, number of POST vars, POST data
-			curl_setopt($ch,CURLOPT_URL,$twitpicURL);
-										
-			//TwitPic requires the data to be sent as POST
-			$media_data = array(
-				'media' => '@'.$_FILES['media']['tmp_name'],
-				'message' => ' ' . stripslashes($_POST['message']), //A space is needed because twitpic b0rks if first char is an @
-				'key'=>TWITPIC_API_KEY
-			);
-
-			curl_setopt($ch, CURLOPT_POST, true);
-			curl_setopt($ch,CURLOPT_POSTFIELDS,$media_data);
-
-			//execute post
-			$result = curl_exec($ch);
-			$response_info=curl_getinfo($ch);
-
-			//close connection
-			curl_close($ch);
-
-			if ($response_info['http_code'] == 200) { //Success
-				//Decode the response
-				$json = json_decode($result);
-				$id = $json->id;
-				$twitpicURL = $json->url;
-				$text = $json->text;
-				$message = trim($text) . " " . $twitpicURL;
-
-				//Send the user's message to twitter
-				$request = API_URL.'statuses/update.json';
-
-				$post_data = array('source' => 'dabr', 'status' => $message);
-				$status = twitter_process($request, $post_data);
-
-				//Back to the timeline
-				twitter_refresh("twitpic/confirm/$id");
+		if ($code == 200) {
+			$json = json_decode($tmhOAuth->response['response']);
+			
+			if ($_SERVER['HTTPS'] == "on") {
+				$image_url = $json->entities->media[0]->media_url_https;
 			}
 			else {
-				$content = "<p>Twitpic upload failed. No idea why!</p>";
-				$content .=  "<pre>";
-				$json = json_decode($result);
-				$content .= "<br / ><b>message</b> " . urlencode($_POST['message']);
-				$content .= "<br / ><b>json</b> " . print_r($json);
-				$content .= "<br / ><b>Response</b> " . print_r($response_info);
-				$content .= "<br / ><b>header</b> " . print_r($header);
-				$content .= "<br / ><b>media_data</b> " . print_r($media_data);
-				$content .= "<br /><b>URL was</b> " . $twitpicURL;
-				$content .= "<br /><b>File uploaded was</b> " . $_FILES['media']['tmp_name'];
-				$content .= "</pre>";
+				$image_url = $json->entities->media[0]->media_url;
 			}
+
+			$text = $json->text;
+			
+			$content = "<p>Upload success. Image posted to Twitter.</p>
+							<p><img src=\"" . IMAGE_PROXY_URL . $image_url . "\" alt='' /></p>
+							<p>". twitter_parse_tags($text) . "</p>";
+			
+		} else {
+			$content = "Damn! Something went wrong. Sorry :-("  
+				."<br /> code=" . $code
+				."<br /> status=" . $status
+				."<br /> image=" . $image
+				."<br /> response=<pre>"
+				. print_r($tmhOAuth->response['response'], TRUE)
+				. "</pre><br /> info=<pre>"
+				. print_r($tmhOAuth->response['info'], TRUE)
+				. "</pre><br /> code=<pre>"
+				. print_r($tmhOAuth->response['code'], TRUE) . "</pre>";
 		}
-		elseif ($query[1] == 'confirm') {
-			$content = "<p>Upload success. Image posted to Twitter.</p><p><img src='http://twitpic.com/show/thumb/{$query[2]}' alt='' /></p>";
-		}
-		else {
-			$content = "<form method='post' action='twitpic' enctype='multipart/form-data'>Image <input type='file' name='media' /><br />Message (optional):<br /><textarea name='message' style='width:90%; max-width: 400px;' rows='3' id='message'></textarea><br><input type='submit' value='Send'><span id='remaining'>110</span></form>";
-			$content .= js_counter("message", "110");
+	}
+	
+	if($_POST) {
+		if (!$_POST['message']) {
+			$content .= "<p>Please enter a message to go with your image.</p>";
 		}
 
-		return theme('page', 'Twitpic Upload', $content);
+		if (!$_FILES['image']['tmp_name']) {
+			$content .= "<p>Please select an image to upload.</p>";
+		}
 	}
+	
+	$content .=	"<form method='post' action='Upload Picture' enctype='multipart/form-data'>
+						Image <input type='file' name='image' /><br />
+						Message (optional):<br />
+						<textarea name='message' style='width:90%; max-width: 400px;' rows='3' id='message'>" . $_POST['message'] . "</textarea><br>
+						<input type='submit' value='Send'><span id='remaining'>120</span>
+					</form>";
+	$content .= js_counter("message", "120");
+
+	return theme('page', 'Picture Upload', $content);
 }
 
 function twitter_process($url, $post_data = false)
@@ -392,7 +361,7 @@ function twitter_process($url, $post_data = false)
 		$post_data = array();
 	}
 
-	if (user_type() == 'oauth' && ( strpos($url, '/twitter.com') !== false || strpos($url, 'api.twitter.com') !== false))
+	if (user_type() == 'oauth' && ( strpos($url, '/twitter.com') !== false || strpos($url, 'api.twitter.com') !== false || strpos($url, 'upload.twitter.com') !== false))
 	{
 		user_oauth_sign($url, $post_data);
 	}
@@ -414,11 +383,6 @@ function twitter_process($url, $post_data = false)
 	{
 		curl_setopt ($ch, CURLOPT_POST, true);
 		curl_setopt ($ch, CURLOPT_POSTFIELDS, $post_data);
-	}
-
-	if (user_type() != 'oauth' && user_is_authenticated())
-	{
-		curl_setopt($ch, CURLOPT_USERPWD, user_current_username().':'.$GLOBALS['user']['password']);
 	}
 
 	//from  http://github.com/abraham/twitteroauth/blob/master/twitteroauth/twitteroauth.php
@@ -521,9 +485,14 @@ function twitter_fetch($url) {
 //	http://dev.twitter.com/pages/tweet_entities
 function twitter_get_media($status) {
 	if($status->entities->media) {
+		if ($_SERVER['HTTPS'] == "on") {
+			$image = $status->entities->media[0]->media_url_https;
+		} else {
+			$image = $status->entities->media[0]->media_url;
+		}
 	
-		$media_html = "<a href=\"" . $status->entities->media[0]->media_url_https . "\" target='" . get_target() . "'>";
-		$media_html .= 	"<img src=\"" . $status->entities->media[0]->media_url_https . ":thumb\" width=\"" . $status->entities->media[0]->sizes->thumb->w . 
+		$media_html = "<a href=\"" . $image . "\" target='" . get_target() . "'>";
+		$media_html .= 	"<img src=\"" . $image . ":thumb\" width=\"" . $status->entities->media[0]->sizes->thumb->w . 
 								"\" height=\"" . $status->entities->media[0]->sizes->thumb->h . "\" />";
 		$media_html .= "</a><br />";
 		
@@ -1255,7 +1224,7 @@ function theme_user_header($user) {
 	$tweets_per_day = twitter_tweets_per_day($user, 1);
 	$bio = twitter_parse_tags($user->description);
 	$out = "<div class='profile'>";
-    $out .= "<span class='avatar'>".theme('external_link', $full_avatar, theme('avatar', theme_get_avatar($user)))."</span>";
+   $out .= "<span class='avatar'>".theme('external_link', $full_avatar, theme('avatar', theme_get_avatar($user)))."</span>";
 	$out .= "<span class='status shift'><b>{$name}</b><br />";
 	$out .= "<span class='about'>";
 	if ($user->verified == true) {
@@ -1744,20 +1713,12 @@ function theme_full_name($user) {
 
 // http://groups.google.com/group/twitter-development-talk/browse_thread/thread/50fd4d953e5b5229#
 function theme_get_avatar($object) {
-	// Are we calling the HTTPS API?	
-	$pos = strpos(API_URL, "https");
-
-	// Not useing HTTPS? Return the normal one
-	if ($pos === false) {
-		return $object->profile_image_url;
-	}
-
-	// Is there a secure image to return?
-	if ($object->profile_image_url_https) {
+	if ($_SERVER['HTTPS'] == "on" && $object->profile_image_url_https) {
 		return $object->profile_image_url_https;
 	}
-
-	return $object->profile_image_url;
+	else {
+		return $object->profile_image_url;
+	}
 }
 
 function theme_no_tweets() {
