@@ -3,7 +3,6 @@
 require 'Autolink.php';
 require 'Extractor.php';
 require 'Embedly.php';
-require 'tmhOAuth.php';
 		
 menu_register(array(
 	'' => array(
