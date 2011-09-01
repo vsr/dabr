@@ -1059,21 +1059,14 @@ function twitter_user_page($query)
 	// Build an array of people we're talking to
 	$to_users = array($user->screen_name);
 
+	// Build an array of hashtags being used
+	$hashtags = array();
+
 	// Are we replying to anyone?
 	if (is_numeric($in_reply_to_id)) {
 		$tweet = twitter_find_tweet_in_timeline($in_reply_to_id, $tl);
-
-		// Hyperlink the URLs (target _blank
-		$out = Twitter_Autolink::create($tweet->text)
-						->addLinksToURLs();
-	        // Hyperlink the @ and lists
-	        $out = Twitter_Autolink::create($out)
-        	        	                ->setTarget('')
-                	        	        ->addLinksToUsernamesAndLists();
-	        // Hyperlink the #
-        	$out = Twitter_Autolink::create($out)
-                		                ->setTarget('')
-                                		->addLinksToHashtags();
+		
+		$out = twitter_parse_tags($tweet->text);
 
 		$content .= "<p>In reply to:<br />{$out}</p>";
 
@@ -1082,6 +1075,10 @@ function twitter_user_page($query)
 				->extractMentionedUsernames();
 			$to_users = array_unique(array_merge($to_users, $found));
 		}
+				
+		if ($tweet->entities->hashtags) {
+			$hashtags = $tweet->entities->hashtags;
+		}		
 	}
 
 	// Build a status message to everyone we're talking to
@@ -1090,6 +1087,11 @@ function twitter_user_page($query)
 		if (!user_is_current_user($username)) {
 			$status .= "@{$username} ";
 		}
+	}
+
+	// Add in the hashtags they've used
+	foreach ($hashtags as $hashtag) {
+		$status .= "#{$hashtag->text} ";
 	}
 
 	$content .= theme('status_form', $status, $in_reply_to_id);
