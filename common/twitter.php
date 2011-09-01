@@ -564,6 +564,23 @@ function twitter_parse_tags($input, $entities = false) {
 	//Linebreaks.  Some clients insert \n for formatting.
 	$out = nl2br($out);
 
+	// Emails
+	$tok = strtok($out, " \n\t\n\r\0");	// Tokenise the string by whitespace
+
+	while ($tok !== false) {	// Go through all the tokens
+		$at = stripos($tok, "@");	// Does the string contain an "@"?
+
+		if ($at && $at > 0) { // @ is in the string & isn't the first character
+			$tok = trim($tok, "?.,!\"\'");	// Remove any trailing punctuation
+			
+			if (filter_var($tok, FILTER_VALIDATE_EMAIL)) {	// Use the internal PHP email validator
+				$email = $tok;
+				$out = str_replace($email, "<a href=\"mailto:{$email}\">{$email}</a>", $out);	// Create the mailto: link
+			}
+		}
+		$tok = strtok(" \n\t\n\r\0");	// Move to the next token
+	}
+
 	//Return the completed string
 	return $out;
 }
