@@ -1168,22 +1168,11 @@ function theme_status_form($text = '', $in_reply_to_id = NULL) {
 function theme_status($status) {
 	//32bit int / snowflake patch
 	if($status->id_str) $status->id = $status->id_str;
-
-	$time_since = theme('status_time_link', $status);
-	$parsed = twitter_parse_tags($status->text, $status->entities);
-	$avatar = theme('avatar', theme_get_avatar($status->user));
-
-	$out = theme('status_form', "@{$status->user->screen_name} ");
-	$out .= "<div class='timeline'>\n";
-	$out .= " <div class='tweet odd'>\n";
-	$out .= "  <span class='avatar'>$avatar</span>\n";
-	$out .= "  <span class='status shift'><b><a href='user/{$status->user->screen_name}'>{$status->user->screen_name}</a></b> $time_since<br />$parsed</span>\n";
-	$out .= " </div>\n";
-	$out .= "</div>\n";
-	if (user_is_current_user($status->user->screen_name)) {
-		$out .= "<form action='delete/{$status->id_str}' method='post'><input type='submit' value='Delete without confirmation' /></form>";
-	}
-	return $out;
+	
+	$feed[] = $status;
+	$tl = twitter_standard_timeline($feed, 'status');
+	$content = theme('timeline', $tl);
+	return $content;
 }
 
 function theme_retweet($status)
@@ -1372,6 +1361,7 @@ function twitter_standard_timeline($feed, $source) {
 	}
 	
 	switch ($source) {
+		case 'status':
 		case 'favourites':
 		case 'friends':
 		case 'replies':
@@ -1491,6 +1481,9 @@ function twitter_user_info($username = null) {
 function theme_timeline($feed)
 {
 	if (count($feed) == 0) return theme('no_tweets');
+	if (count($feed) < 2) { 
+		$hide_pagination = true;
+	}
 	$rows = array();
 	$page = menu_current_page();
 	$date_heading = false;
@@ -1589,12 +1582,11 @@ function theme_timeline($feed)
 	}
 	$content = theme('table', array(), $rows, array('class' => 'timeline'));
 
-	//$content .= theme('pagination');
-	if ($page != '')
+	if ($page != '' && !$hide_pagination)
 	{
 		$content .= theme('pagination');
 	}
-	else
+	else if (!$hide_pagination)  // Don't show pagination if there's only one item
 	{
 		//Doesn't work. since_id returns the most recent tweets up to since_id, not since. Grrr
 		//$links[] = "<a href='{$_GET['q']}?since_id=$since_id'>Newer</a>";
