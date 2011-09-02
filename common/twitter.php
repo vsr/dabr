@@ -445,26 +445,6 @@ function twitter_process($url, $post_data = false)
 	}
 }
 
-function twitter_url_shorten($text) {
-	return preg_replace_callback('#((\w+://|www)[\w\#$%&~/.\-;:=,?@\[\]+]{33,1950})(?<![.,])#is', 'twitter_url_shorten_callback', $text);
-}
-
-function twitter_url_shorten_callback($match) {
-	if (preg_match('#http://www.flickr.com/photos/[^/]+/(\d+)/#', $match[0], $matches)) {
-		return 'http://flic.kr/p/'.flickr_encode($matches[1]);
-	}
-	if (BITLY_API_KEY == '') return $match[0];
-	// http://code.google.com/p/bitly-api/wiki/ApiDocumentation#/v3/shorten
-	$request = 'https://api-ssl.bitly.com/v3/shorten?login='.BITLY_LOGIN.'&apiKey='.BITLY_API_KEY.'&longUrl='.urlencode($match[0]).'&format=json';
-	$json = json_decode(twitter_fetch($request));
-
-	if ($json->status_code == 200) {
-		return $json->data->url;
-	} else {
-		return $match[0];
-	}
-}
-
 function twitter_fetch($url) {
 	global $services_time;
 	$ch = curl_init();
@@ -856,7 +836,7 @@ function twitter_retweeters_page($tweet) {
 
 function twitter_update() {
 	twitter_ensure_post_action();
-	$status = twitter_url_shorten(stripslashes(trim($_POST['status'])));
+	$status = stripslashes(trim($_POST['status']));
 	if ($status) {
 		$request = API_URL.'statuses/update.json';
 		$post_data = array('source' => 'dabr', 'status' => $status);

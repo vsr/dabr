@@ -22,13 +22,6 @@ define('OAUTH_CONSUMER_SECRET', '');
 // Sign up at https://app.embed.ly/
 define('EMBEDLY_KEY', '');
 
-// bit.ly login and API key for URL shortening
-define('BITLY_LOGIN', '');
-define('BITLY_API_KEY', '');
-
-// API key for Twitpic - sign up at http://dev.twitpic.com/
-define('TWITPIC_API_KEY', '');
-
 // API key for InMobi adverts - sign up at http://inmobi.com/
 define('INMOBI_API_KEY', '');
 
