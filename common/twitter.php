@@ -276,7 +276,8 @@ updateCount();
 function twitter_media_page($query) 
 {
 	$content = "";
-
+	$status = stripslashes($_POST['message']);
+	
 	if ($_POST['message'] && $_FILES['image']['tmp_name']) 
 	{
 		require 'tmhOAuth.php';
@@ -291,12 +292,11 @@ function twitter_media_page($query)
 		));
 
 		$image = "{$_FILES['image']['tmp_name']};type={$_FILES['image']['type']};filename={$_FILES['image']['name']}";
-		$status = $_POST['message'];
 
 		$code = $tmhOAuth->request('POST', 'https://upload.twitter.com/1/statuses/update_with_media.json',
 											  array(
 												 'media[]'  => "@{$image}",
-												 'status'   => " " . $_POST['message'] //A space is needed because twitter b0rks if first char is an @
+												 'status'   => " " . $status //A space is needed because twitter b0rks if first char is an @
 											  ),
 											  true, // use auth
 											  true  // multipart
@@ -345,7 +345,7 @@ function twitter_media_page($query)
 	$content .=	"<form method='post' action='Upload Picture' enctype='multipart/form-data'>
 						Image <input type='file' name='image' /><br />
 						Message (optional):<br />
-						<textarea name='message' style='width:90%; max-width: 400px;' rows='3' id='message'>" . $_POST['message'] . "</textarea><br>
+						<textarea name='message' style='width:90%; max-width: 400px;' rows='3' id='message'>" . $status . "</textarea><br>
 						<input type='submit' value='Send'><span id='remaining'>120</span>
 					</form>";
 	$content .= js_counter("message", "120");
