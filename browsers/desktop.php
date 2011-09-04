@@ -5,7 +5,7 @@ function desktop_theme_status_form($text = '', $in_reply_to_id = NULL) {
 			$icon = "https://si0.twimg.com/images/dev/cms/intents/bird/bird_blue/bird_16_blue.png";
 		}
 		else {
-			$icon = "http://si0.twimg.com/images/dev/cms/intents/bird/bird_blue/bird_16_blue.png";
+			$icon = "http://a1.twimg.com/images/dev/cms/intents/bird/bird_blue/bird_16_blue.png";
 		}
 	
 		$output = '<form method="post" action="update">
