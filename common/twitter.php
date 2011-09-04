@@ -1217,7 +1217,7 @@ function theme_user_header($user) {
 	$tweets_per_day = twitter_tweets_per_day($user, 1);
 	$bio = twitter_parse_tags($user->description);
 	$out = "<div class='profile'>";
-   $out .= "<span class='avatar'>".theme('external_link', $full_avatar, theme('avatar', theme_get_avatar($user)))."</span>";
+	$out .= "<span class='avatar'>".theme('external_link', $full_avatar, theme('avatar', theme_get_avatar($user)))."</span>";
 	$out .= "<span class='status shift'><b>{$name}</b><br />";
 	$out .= "<span class='about'>";
 	if ($user->verified == true) {
@@ -1710,10 +1710,10 @@ function theme_full_name($user) {
 // http://groups.google.com/group/twitter-development-talk/browse_thread/thread/50fd4d953e5b5229#
 function theme_get_avatar($object) {
 	if ($_SERVER['HTTPS'] == "on" && $object->profile_image_url_https) {
-		return $object->profile_image_url_https;
+		return IMAGE_PROXY_URL . "48/48/" . $object->profile_image_url_https;
 	}
 	else {
-		return $object->profile_image_url;
+		return IMAGE_PROXY_URL . "48/48/" . $object->profile_image_url;
 	}
 }
 
