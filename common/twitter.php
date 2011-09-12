@@ -315,7 +315,7 @@ function twitter_media_page($query)
 			$text = $json->text;
 			
 			$content = "<p>Upload success. Image posted to Twitter.</p>
-							<p><img src=\"" . IMAGE_PROXY_URL . $image_url . "\" alt='' /></p>
+							<p><img src=\"" . IMAGE_PROXY_URL . "x50/" . $image_url . "\" alt='' /></p>
 							<p>". twitter_parse_tags($text) . "</p>";
 			
 		} else {
@@ -482,10 +482,14 @@ function twitter_get_media($status) {
 
 function twitter_parse_tags($input, $entities = false) {
 
+	$out = $input;
+
+	//Linebreaks.  Some clients insert \n for formatting.
+	$out = nl2br($out);
+	
 	// Use the Entities to replace hyperlink URLs
 	// http://dev.twitter.com/pages/tweet_entities
 	if($entities) {
-		$out = $input;
 		foreach($entities->urls as $urls) {
 			if($urls->expanded_url != "") {
 				$display_url = $urls->expanded_url;
@@ -509,13 +513,20 @@ function twitter_parse_tags($input, $entities = false) {
 			$pattern = '#((?<!href\=(\'|\"))'.preg_quote($url,'#').')#i';
 			$out = preg_replace($pattern,  $link_html, $out);
 		}
-	} else {  // If Entities haven't been returned, use Autolink
+		foreach($entities->hashtags as $hashtag) {
+			$text = $hashtag->text;
+			
+			$pattern = '/(^|\s)([#＃]+)('. $text .')/iu';
+			
+			$link_html = ' <a href="hash/' . $text . '">#' . $text . '</a> ';
+			
+			$out = preg_replace($pattern,  $link_html, $out, 1);
+		}
+	} else {  // If Entities haven't been returned (usually because of search or a bio) use Autolink
 		// Create an array containing all URLs
 		$urls = Twitter_Extractor::create($input)
 				->extractURLs();
-			
-		$out = $input;	
-		
+
 		// Hyperlink the URLs 
 		if (setting_fetch('gwt') == 'on') // If the user wants links to go via GWT 
 		{
@@ -528,21 +539,18 @@ function twitter_parse_tags($input, $entities = false) {
 		{
 				$out = Twitter_Autolink::create($out)
 							->addLinksToURLs();
-		}
+		}	
+		
+		// Hyperlink the #	
+		$out = Twitter_Autolink::create($out)
+					->setTarget('')
+					->addLinksToHashtags();
 	}
 	
 	// Hyperlink the @ and lists
 	$out = Twitter_Autolink::create($out)
 				->setTarget('')
 				->addLinksToUsernamesAndLists();
-
-	// Hyperlink the #	
-	$out = Twitter_Autolink::create($out)
-				->setTarget('')
-				->addLinksToHashtags();
-
-	//Linebreaks.  Some clients insert \n for formatting.
-	$out = nl2br($out);
 
 	// Emails
 	$tok = strtok($out, " \n\t\n\r\0");	// Tokenise the string by whitespace
