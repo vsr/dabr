@@ -1531,7 +1531,9 @@ function theme_timeline($feed)
 			$date = $status->created_at;
 		}
 		$text = $status->text;
-		$media = twitter_get_media($status);
+    if (!in_array(setting_fetch('browser'), array('text', 'worksafe'))) {
+      $media = twitter_get_media($status);
+    }
 		$link = theme('status_time_link', $status, !$status->is_direct);
 		$actions = theme('action_icons', $status);
 		$avatar = theme('avatar', theme_get_avatar($status->from));
