@@ -3,6 +3,7 @@
 require 'Autolink.php';
 require 'Extractor.php';
 require 'Embedly.php';
+require 'Emoticons.php';
 		
 menu_register(array(
 	'' => array(
@@ -566,6 +567,11 @@ function twitter_parse_tags($input, $entities = false) {
 			}
 		}
 		$tok = strtok(" \n\t\n\r\0");	// Move to the next token
+	}
+
+	//	Add Emoticons :-)
+	if (setting_fetch('emoticons') != 'off') {
+		$out = emoticons($out);
 	}
 
 	//Return the completed string

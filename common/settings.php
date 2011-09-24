@@ -57,6 +57,7 @@ function settings_page($args) {
 		$settings['timestamp']   = $_POST['timestamp'];
 		$settings['hide_inline'] = $_POST['hide_inline'];
 		$settings['utc_offset']  = (float)$_POST['utc_offset'];
+		$settings['emoticons']   = $_POST['emoticons'];
 		
 		// Save a user's oauth details to a MySQL table
 		if (MYSQL_USERS == 'ON' && $newpass = $_POST['newpassword']) {
@@ -83,6 +84,11 @@ function settings_page($args) {
 		'off' => 'direct',
 		'on' => 'via GWT',
 	);
+	
+	$emoticons = array(
+		'on' => 'ON',
+		'off' => 'OFF',
+	);
 
 	$colour_schemes = array();
 	foreach ($GLOBALS['colour_schemes'] as $id => $info) {
@@ -105,6 +111,10 @@ function settings_page($args) {
 	$content .= theme('options', $colour_schemes, setting_fetch('colours', 5));
 	$content .= '</select></p><p>Mode:<br /><select name="browser">';
 	$content .= theme('options', $modes, $GLOBALS['current_theme']);
+	
+	$content .= '</select><br/></p><p>Emoticons - show :-) as images<br /><select name="emoticons">';
+	$content .= theme('options', $emoticons, setting_fetch('emoticons', $GLOBALS['current_theme'] == 'text' ? 'on' : 'off'));
+
 	$content .= '</select></p><p>External links go:<br /><select name="gwt">';
 	$content .= theme('options', $gwt, setting_fetch('gwt', $GLOBALS['current_theme'] == 'text' ? 'on' : 'off'));
 	$content .= '</select><small><br />Google Web Transcoder (GWT) converts third-party sites into small, speedy pages suitable for older phones and people with less bandwidth.</small></p>';
