@@ -283,6 +283,13 @@ function twitter_media_page($query)
 	{
 		require 'tmhOAuth.php';
 		
+		// Geolocation parameters
+		list($lat, $long) = explode(',', $_POST['location']);
+		if (is_numeric($lat) && is_numeric($long)) {
+			$post_data['lat'] = $lat;
+			$post_data['long'] = $long;	
+		}
+		
 		list($oauth_token, $oauth_token_secret) = explode('|', $GLOBALS['user']['password']);
 		
 		$tmhOAuth = new tmhOAuth(array(
@@ -297,7 +304,9 @@ function twitter_media_page($query)
 		$code = $tmhOAuth->request('POST', 'https://upload.twitter.com/1/statuses/update_with_media.json',
 											  array(
 												 'media[]'  => "@{$image}",
-												 'status'   => " " . $status //A space is needed because twitter b0rks if first char is an @
+												 'status'   => " " . $status, //A space is needed because twitter b0rks if first char is an @
+												 'lat'		=> $lat,
+												 'long'		=> $long,
 											  ),
 											  true, // use auth
 											  true  // multipart
@@ -347,8 +356,38 @@ function twitter_media_page($query)
 						Image <input type='file' name='image' /><br />
 						Message (optional):<br />
 						<textarea name='message' style='width:90%; max-width: 400px;' rows='3' id='message'>" . $status . "</textarea><br>
-						<input type='submit' value='Send'><span id='remaining'>120</span>
-					</form>";
+						<input type='submit' value='Send' />
+						<span id='remaining'>120</span>";
+	$content .= '	<span id="geo" style="display: none;">
+							<input onclick="goGeo()" type="checkbox" id="geoloc" name="location" />
+							<label for="geoloc" id="lblGeo"></label>
+						</span>
+						<script type="text/javascript">
+							started = false;
+							chkbox = document.getElementById("geoloc");
+							if (navigator.geolocation) {
+								geoStatus("Tweet my location");
+								if ("'.$_COOKIE['geo'].'"=="Y") {
+									chkbox.checked = true;
+									goGeo();
+								}
+							}
+							function goGeo(node) {
+								if (started) return;
+								started = true;
+								geoStatus("Locating...");
+								navigator.geolocation.getCurrentPosition(geoSuccess, geoStatus , { enableHighAccuracy: true });
+							}
+							function geoStatus(msg) {
+								document.getElementById("geo").style.display = "inline";
+								document.getElementById("lblGeo").innerHTML = msg;
+							}
+							function geoSuccess(position) {
+								geoStatus("Tweet my <a href=\'http://maps.google.co.uk/m?q=" + position.coords.latitude + "," + position.coords.longitude + "\' target=' . get_target() . '>location</a>");
+								chkbox.value = position.coords.latitude + "," + position.coords.longitude;
+							}
+					</script>
+					</form>';
 	$content .= js_counter("message", "120");
 
 	return theme('page', 'Picture Upload', $content);
