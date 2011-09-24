@@ -628,11 +628,16 @@ function twitter_status_page($query) {
 	if (is_numeric($id)) {
 		$request = API_URL."statuses/show/{$id}.json?include_entities=true";
 		$status = twitter_process($request);
+		$text = $status->text;	//	Grab the text before it gets formatted
+
 		$content = theme('status', $status);
 
 		//	Show a link to the original tweet		
 		$screen_name = $status->from->screen_name;
-		$content .= '<p><a href="https://mobile.twitter.com/' . $screen_name . '/status/' . $id . '" target="'. get_target() . '">View orginal tweet on Twitter</a></p>';
+		$content .= '<p><a href="https://mobile.twitter.com/' . $screen_name . '/status/' . $id . '" target="'. get_target() . '">View orginal tweet on Twitter</a> | ';
+		
+		//	Translate the tweet
+		$content .= '<a href="http://translate.google.com/m?hl=en&sl=auto&ie=UTF-8&q=' . urlencode($text) . '" target="'. get_target() . '">Translate this tweet</a></p>';
 		
 		if (!$status->user->protected) {
 			$thread = twitter_thread_timeline($id);
