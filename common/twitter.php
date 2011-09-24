@@ -517,7 +517,6 @@ function twitter_parse_tags($input, $entities = false) {
 			$text = $hashtag->text;
 			
 			$pattern = '/(^|\s)([#＃]+)('. $text .')/iu';
-			
 			$link_html = ' <a href="hash/' . $text . '">#' . $text . '</a> ';
 			
 			$out = preg_replace($pattern,  $link_html, $out, 1);
@@ -630,6 +629,11 @@ function twitter_status_page($query) {
 		$request = API_URL."statuses/show/{$id}.json?include_entities=true";
 		$status = twitter_process($request);
 		$content = theme('status', $status);
+
+		//	Show a link to the original tweet		
+		$screen_name = $status->from->screen_name;
+		$content .= '<p><a href="https://mobile.twitter.com/' . $screen_name . '/status/' . $id . '" target="'. get_target() . '">View orginal tweet on Twitter</a></p>';
+		
 		if (!$status->user->protected) {
 			$thread = twitter_thread_timeline($id);
 		}
