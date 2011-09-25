@@ -1269,7 +1269,7 @@ function theme_user_header($user) {
 	$followed_by = $following->relationship->target->followed_by; //The $user is followed by the authenticating
 	$following = $following->relationship->target->following;
 	$name = theme('full_name', $user);
-	$full_avatar = str_replace('_normal.', '.', theme_get_avatar($user));
+	$full_avatar = theme_get_full_avatar($user);
 	$link = theme('external_link', $user->url);
 	//Some locations have a prefix which should be removed (UbertTwitter and iPhone)
 	//Sorry if my PC has converted from UTF-8 with the U (artesea)
@@ -1778,6 +1778,15 @@ function theme_get_avatar($object) {
 	}
 	else {
 		return IMAGE_PROXY_URL . "48/48/" . $object->profile_image_url;
+	}
+}
+
+function theme_get_full_avatar($object) {
+	if ($_SERVER['HTTPS'] == "on" && $object->profile_image_url_https) {
+		return IMAGE_PROXY_URL . str_replace('_normal.', '.', $object->profile_image_url_https);
+	}
+	else {
+		return IMAGE_PROXY_URL . str_replace('_normal.', '.', $object->profile_image_url);
 	}
 }
 
