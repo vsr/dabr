@@ -1196,7 +1196,10 @@ function twitter_home_page() {
 	$tl = twitter_standard_timeline($tl, 'friends');
 	$content = theme('status_form');
 	$content .= theme('timeline', $tl);
+<<<<<<< HEAD
 
+=======
+>>>>>>> 1a87a9907b7e036e792a5cdd5e854b25fd11d23c
     if( !isset($_GET['since_id']) and !isset($_GET['max_id']) ){
         $content .= auto_reload();
     }
@@ -1599,14 +1602,16 @@ function theme_timeline($feed)
 		{
 			$date = $status->created_at;
 		}
+
 		$text = $status->text;
-        if (!in_array(setting_fetch('browser'), array('text', 'worksafe'))) {
-          $media = twitter_get_media($status);
-        }
 
         if( $blacklist_words != '' and preg_match( $blacklist_regex , $status->text ) >0  ) {
             continue;
             //$status->text = $status->text . "<!-- (b) {$blacklist_regex} -->";
+        }
+
+        if (!in_array(setting_fetch('browser'), array('text', 'worksafe'))) {
+          $media = twitter_get_media($status);
         }
 
 		$link = theme('status_time_link', $status, !$status->is_direct);
@@ -1967,6 +1972,7 @@ function pluralise($word, $count, $show = FALSE) {
 	return $word . (($count != 1) ? 's' : '');
 }
 
+<<<<<<< HEAD
 function is_64bit() {
 	$int = "9223372036854775807";
 	$int = intval($int);
@@ -1974,6 +1980,8 @@ function is_64bit() {
 }
 
 
+=======
+>>>>>>> 1a87a9907b7e036e792a5cdd5e854b25fd11d23c
 /** from @abraham's oauthlib
 * Get the header info to store.
 */
