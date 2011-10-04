@@ -1969,16 +1969,12 @@ function pluralise($word, $count, $show = FALSE) {
 	return $word . (($count != 1) ? 's' : '');
 }
 
-<<<<<<< HEAD
 function is_64bit() {
 	$int = "9223372036854775807";
 	$int = intval($int);
 	return ($int == 9223372036854775807);
 }
 
-
-=======
->>>>>>> 1a87a9907b7e036e792a5cdd5e854b25fd11d23c
 /** from @abraham's oauthlib
 * Get the header info to store.
 */
